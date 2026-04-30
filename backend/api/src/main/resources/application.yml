@@ -1,24 +1,24 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: quick-speech-api
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/quick_speech
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:quick_speech}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
-      minimum-idle: 5
-      maximum-pool-size: 20
+      minimum-idle: 2
+      maximum-pool-size: 10
       idle-timeout: 30000
       connection-timeout: 30000
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
@@ -33,26 +33,26 @@ spring:
 
 # JWT配置
 jwt:
-  secret: quick-speech-jwt-secret-key-at-least-32-characters-long
-  expiration: 86400000  # 24小时
+  secret: ${JWT_SECRET:quick-speech-jwt-secret-key-at-least-32-characters-long-for-production}
+  expiration: 86400000
 
 # AI API配置
 ai:
   openai:
     api-key: ${OPENAI_API_KEY:}
-    api-url: https://api.openai.com/v1/chat/completions
-  default-model: gpt-4o-mini
+    api-url: ${AI_API_URL:https://api.openai.com/v1/chat/completions}
+  default-model: ${AI_DEFAULT_MODEL:gpt-4o-mini}
 
 # Embedding配置
 embedding:
   api:
-    url: https://api.openai.com/v1/embeddings
+    url: ${EMBEDDING_API_URL:https://api.openai.com/v1/embeddings}
     key: ${OPENAI_API_KEY:}
-  model: text-embedding-ada-002
+  model: ${EMBEDDING_MODEL:text-embedding-ada-002}
 
 # Chroma向量数据库配置
 chroma:
-  url: http://localhost:8000
+  url: ${CHROMA_URL:http://localhost:8000}
 
 # 日志配置
 logging:
