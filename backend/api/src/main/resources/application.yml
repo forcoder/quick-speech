@@ -1,0 +1,64 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: quick-speech-api
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/quick_speech
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 30000
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+# JWT配置
+jwt:
+  secret: quick-speech-jwt-secret-key-at-least-32-characters-long
+  expiration: 86400000  # 24小时
+
+# AI API配置
+ai:
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    api-url: https://api.openai.com/v1/chat/completions
+  default-model: gpt-4o-mini
+
+# Embedding配置
+embedding:
+  api:
+    url: https://api.openai.com/v1/embeddings
+    key: ${OPENAI_API_KEY:}
+  model: text-embedding-ada-002
+
+# Chroma向量数据库配置
+chroma:
+  url: http://localhost:8000
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.quickspeech: DEBUG
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
