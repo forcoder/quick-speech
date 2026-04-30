@@ -21,7 +21,7 @@ public class VectorSearchService {
     @Value("${embedding.model:text-embedding-ada-002}")
     private String embeddingModel;
 
-    @Value(${chroma.url:http://localhost:8000})
+    @Value("${chroma.url:http://localhost:8000}")
     private String chromaUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();

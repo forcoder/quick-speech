@@ -15,13 +15,13 @@ import java.util.*;
 @Service
 public class AiChatService {
 
-    @Value(${ai.openai.api-key:})
+    @Value("${ai.openai.api-key:}")
     private String openaiApiKey;
 
-    @Value(${ai.openai.api-url:https://api.openai.com/v1/chat/completions})
+    @Value("${ai.openai.api-url:https://api.openai.com/v1/chat/completions}")
     private String openaiApiUrl;
 
-    @Value(${ai.default-model:gpt-4o-mini})
+    @Value("${ai.default-model:gpt-4o-mini}")
     private String defaultModel;
 
     private final RestTemplate restTemplate = new RestTemplate();
