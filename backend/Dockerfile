@@ -1,5 +1,5 @@
 # 多阶段构建：编译 + 运行
-FROM eclipse-temurin:17-jdk-alpine AS builder
+FROM maven:3.9.6-eclipse-temurin-17-alpine AS builder
 
 WORKDIR /build
 
@@ -10,11 +10,8 @@ COPY common/pom.xml common/
 COPY knowledge/pom.xml knowledge/
 COPY agent/pom.xml agent/
 
-# 下载依赖（缓存层）
-RUN apk add --no-cache curl && \
-    curl -sL https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz | tar xz -C /opt/ && \
-    ln -s /opt/apache-maven-3.9.6/bin/mvn /usr/local/bin/mvn && \
-    mvn dependency:resolve -B -q
+# 下载依赖
+RUN mvn dependency:go-offline -B -q 2>/dev/null || true
 
 # 复制源码并构建
 COPY common/src common/src
@@ -22,7 +19,7 @@ COPY knowledge/src knowledge/src
 COPY agent/src agent/src
 COPY api/src api/src
 
-RUN mvn clean package -DskipTests -B -q
+RUN mvn clean package -DskipTests -B
 
 # 运行阶段
 FROM eclipse-temurin:17-jre-alpine
