@@ -1,35 +1,30 @@
 services:
   - type: web
     name: quick-speech-api
-    runtime: docker
+    runtime: java
     plan: free
-    dockerfilePath: ./Dockerfile
-    repo: https://github.com/forcoder/quick-speech
-    branch: main
+    buildCommand: ./mvnw clean package -DskipTests -B
+    startCommand: java -jar api/target/api-*.jar
     healthCheckPath: /actuator/health
     envVars:
       - key: PORT
         value: "8080"
-      - key: SPRING_DATASOURCE_URL
-        fromDatabase:
-          name: quick-speech-db
-          property: connectionString
+      - key: DB_HOST
+        value: "dpg-d7pu5hm8bjmc73blqp40-a.oregon-postgres.render.com"
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: "quick_speech"
       - key: DB_USERNAME
-        fromDatabase:
-          name: quick-speech-db
-          property: user
+        value: "quick_speech_user"
       - key: DB_PASSWORD
-        fromDatabase:
-          name: quick-speech-db
-          property: password
+        value: "2dF2oFGycQlKNkKlTBRZzw27WZZSWM9J"
       - key: JWT_SECRET
-        generateValue: true
-      - key: SPRING_PROFILES_ACTIVE
-        value: prod
+        value: "quick-speech-production-jwt-secret-key-2026-secure-random-string"
       - key: CHROMA_URL
         value: ""
       - key: OPENAI_API_KEY
-        sync: false
+        value: ""
       - key: AI_DEFAULT_MODEL
         value: "gpt-4o-mini"
 
