@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table, Button, Space, Popconfirm, Typography, message } from 'antd';
+import { Table, Button, Space, Tag, Popconfirm, Typography, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getAgents, deleteAgent } from '../../services/api';
 import type { AiAgent } from '../../types';
