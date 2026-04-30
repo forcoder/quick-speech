@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Button, Table, Upload, message, Typography, Card, Progress, Input, Space, Tag } from 'antd';
-import { UploadOutlined, SearchOutlined, FileOutlined } from '@ant-design/icons';
+import { Button, Table, Upload, message, Typography, Card, Input, Space, Tag } from 'antd';
+import { UploadOutlined, SearchOutlined } from '@ant-design/icons';
 import { getDocuments, uploadDocument, searchKnowledge } from '../../services/api';
 import type { KnowledgeDocument } from '../../types';
 

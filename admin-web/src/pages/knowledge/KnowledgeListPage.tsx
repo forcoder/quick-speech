@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, Button, Space, Tag, Modal, Form, Input, message, Popconfirm, Typography, Switch } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, FileTextOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, FileTextOutlined } from '@ant-design/icons';
 import { getKnowledgeBases, createKnowledgeBase, deleteKnowledgeBase, updateKnowledgeBase } from '../../services/api';
 import type { KnowledgeBase } from '../../types';
 

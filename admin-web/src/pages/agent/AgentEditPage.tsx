@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Form, Input, InputNumber, Select, Switch, Button, Card, Space, message, Typography, Tag } from 'antd';
+import { Form, Input, InputNumber, Select, Switch, Button, Card, Space, message, Typography } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
 import { createAgent, updateAgent, testAgent } from '../../services/api';
 

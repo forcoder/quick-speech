@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Table, Tag, Select, Typography, message } from 'antd';
+import { Table, Select, Typography, message } from 'antd';
 import { getUsers, updateUserRole } from '../../services/api';
 import type { User } from '../../types';
 
