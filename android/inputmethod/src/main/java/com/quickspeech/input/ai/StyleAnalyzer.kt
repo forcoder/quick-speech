@@ -1,4 +1,4 @@
-package com.quickspeech.inputmethod.ai
+package com.quickspeech.input.ai
 
 import com.quickspeech.common.db.BehaviorRecordDao
 import com.quickspeech.common.db.BehaviorRecordEntity
@@ -98,9 +98,7 @@ class StyleAnalyzer @Inject constructor(
             for (len in 2..6) {
                 for (i in 0..(text.length - len)) {
                     val phrase = text.substring(i, i + len)
-                    if (phrase.all { it.isLetterOrDigit() || it == '，' || it == '。' || it == '！' }) {
-                        phraseCount[phrase] = (phraseCount[phrase] ?: 0) + 1
-                    }
+                    phraseCount[phrase] = (phraseCount[phrase] ?: 0) + 1
                 }
             }
         }
@@ -171,9 +169,6 @@ class StyleAnalyzer @Inject constructor(
     }
 
     private fun mergeLists(existing: List<String>, newItems: List<String>): List<String> {
-        val merged = (existing + newItems).toSet().toMutableList()
-        val newSet = newItems.toSet()
-        merged.sortByDescending { if (it in newSet) 1 else 0 }
-        return merged
+        return (existing + newItems).toSet().toMutableList()
     }
 }

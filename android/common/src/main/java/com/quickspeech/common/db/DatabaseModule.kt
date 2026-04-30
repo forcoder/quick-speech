@@ -1,8 +1,12 @@
 package com.quickspeech.common.db
 
+import android.content.Context
+import com.quickspeech.common.db.dao.KnowledgeEditDao
+import com.quickspeech.common.db.dao.UserStyleDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -12,17 +16,37 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideEditHistoryDao(provider: DatabaseProvider): EditHistoryDao = provider.editHistoryDao
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
+        return AppDatabase.getDatabase(context)
+    }
 
     @Provides
-    @Singleton
-    fun provideCorrectionDao(provider: DatabaseProvider): CorrectionDao = provider.correctionDao
+    fun provideUserStyleDao(database: AppDatabase): UserStyleDao {
+        return database.userStyleDao()
+    }
 
     @Provides
-    @Singleton
-    fun provideBehaviorRecordDao(provider: DatabaseProvider): BehaviorRecordDao = provider.behaviorRecordDao
+    fun provideKnowledgeEditDao(database: AppDatabase): KnowledgeEditDao {
+        return database.knowledgeEditDao()
+    }
 
     @Provides
-    @Singleton
-    fun provideStyleProfileDao(provider: DatabaseProvider): StyleProfileDao = provider.styleProfileDao
+    fun provideEditHistoryDao(database: AppDatabase): EditHistoryDao {
+        return database.editHistoryDao()
+    }
+
+    @Provides
+    fun provideCorrectionDao(database: AppDatabase): CorrectionDao {
+        return database.correctionDao()
+    }
+
+    @Provides
+    fun provideBehaviorRecordDao(database: AppDatabase): BehaviorRecordDao {
+        return database.behaviorRecordDao()
+    }
+
+    @Provides
+    fun provideStyleProfileDao(database: AppDatabase): StyleProfileDao {
+        return database.styleProfileDao()
+    }
 }

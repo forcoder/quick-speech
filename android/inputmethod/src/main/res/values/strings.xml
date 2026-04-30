@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="input_method_name">QuickSpeech 输入法</string>
-    <string name="input_method_subtype">五笔输入</string>
-    <string name="candidate_loading">加载中…</string>
-    <string name="ai_reply_label">AI 回复</string>
-    <string name="knowledge_label">知识库</string>
-    <string name="hybrid_label">混合模式</string>
+    <string name="app_name">Quick Speech</string>
 </resources>

@@ -1,0 +1,56 @@
+# Android
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+bin/
+gen/
+out/
+build/
+.gradle/
+local.properties
+proguard/
+*.log
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+*.keystore
+!android/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node / Web
+node_modules/
+admin-web/node_modules/
+admin-web/dist/
+admin-web/build/
+*.tsbuildinfo
+
+# Maven
+backend/target/
+
+# Docker
+*.env
+docker-compose.override.yml
+
+# Misc
+*.bak
+*.tmp

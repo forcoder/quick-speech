@@ -1,27 +1,38 @@
 package com.quickspeech.common.db
 
+import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import android.content.Context
-import com.quickspeech.common.db.dao.UserStyleDao
+import androidx.room.TypeConverters
 import com.quickspeech.common.db.dao.KnowledgeEditDao
-import com.quickspeech.common.db.entity.UserStyleProfile
-import com.quickspeech.common.db.entity.KnowledgeEditEntry
+import com.quickspeech.common.db.dao.UserStyleDao
 import com.quickspeech.common.db.entity.InteractionLog
+import com.quickspeech.common.db.entity.KnowledgeEditEntry
+import com.quickspeech.common.db.entity.UserStyleProfile
 
 @Database(
     entities = [
         UserStyleProfile::class,
         KnowledgeEditEntry::class,
-        InteractionLog::class
+        InteractionLog::class,
+        EditHistoryEntity::class,
+        CorrectionEntity::class,
+        BehaviorRecordEntity::class,
+        StyleProfileEntity::class
     ],
     version = 1,
     exportSchema = true
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userStyleDao(): UserStyleDao
     abstract fun knowledgeEditDao(): KnowledgeEditDao
+
+    abstract fun editHistoryDao(): EditHistoryDao
+    abstract fun correctionDao(): CorrectionDao
+    abstract fun behaviorRecordDao(): BehaviorRecordDao
+    abstract fun styleProfileDao(): StyleProfileDao
 
     companion object {
         @Volatile

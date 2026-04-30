@@ -6,6 +6,7 @@ import androidx.core.content.FileProvider
 import com.quickspeech.common.db.AppDatabase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
@@ -26,23 +27,10 @@ class DataManager @Inject constructor(
         val exportDir = File(context.cacheDir, "exports").apply { mkdirs() }
         val exportFile = File(exportDir, "quickspeech_data_$timestamp.json")
 
-        val behaviorRecords = database.behaviorRecordDao().let { dao ->
-            val all = mutableListOf<com.quickspeech.common.db.BehaviorRecordEntity>()
-            dao.getAllRecords().collect { all.addAll(it) }
-            all
-        }
-
+        val behaviorRecords = database.behaviorRecordDao().getAllRecords().first()
         val styleProfile = database.styleProfileDao().getProfileSync()
-        val editHistory = database.editHistoryDao().let { dao ->
-            val all = mutableListOf<com.quickspeech.common.db.EditHistoryEntity>()
-            dao.getAllHistory().collect { all.addAll(it) }
-            all
-        }
-        val corrections = database.correctionDao().let { dao ->
-            val all = mutableListOf<com.quickspeech.common.db.CorrectionEntity>()
-            dao.getAllCorrections().collect { all.addAll(it) }
-            all
-        }
+        val editHistory = database.editHistoryDao().getAllHistory().first()
+        val corrections = database.correctionDao().getAllCorrections().first()
 
         val json = com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(
             mapOf(

@@ -1,4 +1,4 @@
-package com.quickspeech.inputmethod.ai
+package com.quickspeech.input.ai
 
 import com.quickspeech.common.db.BehaviorRecordDao
 import com.quickspeech.common.db.BehaviorRecordEntity
@@ -87,8 +87,4 @@ class BehaviorRecorder @Inject constructor(
             )
         }
     }
-
-    fun getTotalRecordCount() = behaviorRecordDao.getRecordCount()
-
-    fun getCountByAction(action: UserActionType) = behaviorRecordDao.getCountByAction(action)
 }
