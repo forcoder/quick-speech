@@ -1,0 +1,10 @@
+# 不排除任何后端文件
+# 只排除前端和安卓项目以减少构建上下文大小
+admin-web/
+android/
+docs/
+.github/
+.git/
+.gitignore
+*.md
+LICENSE
