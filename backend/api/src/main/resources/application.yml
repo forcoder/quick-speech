@@ -4,49 +4,11 @@ server:
 spring:
   application:
     name: quick-speech-api
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/quick_speech?sslmode=disable}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      minimum-idle: 1
-      maximum-pool-size: 5
-      idle-timeout: 30000
-      connection-timeout: 10000
-      initialization-fail-timeout: -1
-  jpa:
-    hibernate:
-      ddl-auto: none
-    show-sql: false
-    open-in-view: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-  servlet:
-    multipart:
-      max-file-size: 50MB
-      max-request-size: 50MB
-
-jwt:
-  secret: ${JWT_SECRET:quick-speech-jwt-secret-key-at-least-32-characters-long-for-production}
-  expiration: 86400000
-
-ai:
-  openai:
-    api-key: ${OPENAI_API_KEY:}
-    api-url: ${AI_API_URL:https://api.openai.com/v1/chat/completions}
-  default-model: ${AI_DEFAULT_MODEL:gpt-4o-mini}
-
-embedding:
-  api:
-    url: ${EMBEDDING_API_URL:https://api.openai.com/v1/embeddings}
-    key: ${OPENAI_API_KEY:}
-  model: ${EMBEDDING_MODEL:text-embedding-ada-002}
-
-chroma:
-  url: ${CHROMA_URL:http://localhost:8000}
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
 
 management:
   endpoints:
@@ -56,13 +18,8 @@ management:
   health:
     db:
       enabled: false
-    diskspace:
-      enabled: false
 
 logging:
   level:
     root: INFO
     com.quickspeech: DEBUG
-    org.springframework.security: INFO
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
