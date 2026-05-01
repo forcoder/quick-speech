@@ -28,6 +28,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Grant execute permission for mvnw
+        working-directory: ./backend
+        run: chmod +x mvnw
+
       - name: Build and test
         working-directory: ./backend
         run: ./mvnw clean verify -B
