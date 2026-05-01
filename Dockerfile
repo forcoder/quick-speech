@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-alpine
+FROM eclipse-temurin:17-jdk-alpine AS builder
 
 WORKDIR /build
 
@@ -7,9 +7,7 @@ RUN apk add --no-cache curl && \
     curl -sL https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz | tar xz -C /opt && \
     ln -s /opt/apache-maven-3.9.6/bin/mvn /usr/local/bin/mvn
 
-# 复制Maven包装器和pom文件
-COPY mvnw .
-COPY .mvn .mvn
+# 复制pom文件
 COPY pom.xml .
 COPY api/pom.xml api/
 COPY common/pom.xml common/
@@ -28,9 +26,12 @@ COPY agent/src agent/src
 # 构建
 RUN mvn clean package -pl api -am -DskipTests -B
 
-# 运行
+# 运行阶段
+FROM eclipse-temurin:17-jre-alpine
+
 WORKDIR /app
-COPY --from=0 /build/api/target/api-*.jar app.jar
+
+COPY --from=builder /build/api/target/api-*.jar app.jar
 
 EXPOSE 8080
 
