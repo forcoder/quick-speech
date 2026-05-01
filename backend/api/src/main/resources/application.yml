@@ -6,7 +6,7 @@ spring:
     name: quick-speech-api
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/quick_speech?sslmode=require}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/quick_speech?sslmode=disable}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -14,11 +14,17 @@ spring:
       minimum-idle: 1
       maximum-pool-size: 5
       idle-timeout: 30000
-      connection-timeout: 20000
+      connection-timeout: 10000
+      initialization-fail-timeout: -1
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
     show-sql: false
     properties:
       hibernate:
