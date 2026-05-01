@@ -11,21 +11,23 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class ApiApplication {
 
     public static void main(String[] args) {
-        // Log environment variables for debugging
-        String[] envVars = {"DB_HOST", "DB_PORT", "DB_NAME", "DB_USERNAME", "PORT", "JWT_SECRET"};
-        for (String env : envVars) {
-            String value = System.getenv(env);
-            if (value != null) {
-                // Mask password-like values
-                if (env.contains("PASSWORD") || env.contains("SECRET") || env.contains("KEY")) {
-                    System.out.println("[ENV] " + env + "=" + value.substring(0, Math.min(4, value.length())) + "****");
-                } else {
-                    System.out.println("[ENV] " + env + "=" + value);
-                }
+        // Log ALL environment variables for debugging
+        System.out.println("=== ENVIRONMENT VARIABLES ===");
+        System.getenv().forEach((key, value) -> {
+            if (key.contains("PASSWORD") || key.contains("SECRET") || key.contains("KEY")) {
+                System.out.println("[ENV] " + key + "=" + value.substring(0, Math.min(4, value.length())) + "****");
             } else {
-                System.out.println("[ENV] " + env + " is NOT SET!");
+                System.out.println("[ENV] " + key + "=" + value);
             }
+        });
+        System.out.println("=== STARTING SPRING BOOT ===");
+        try {
+            SpringApplication.run(ApiApplication.class, args);
+        } catch (Exception e) {
+            System.err.println("=== STARTUP FAILED ===");
+            System.err.println("Exception: " + e.getClass().getName() + ": " + e.getMessage());
+            e.printStackTrace(System.err);
+            System.exit(1);
         }
-        SpringApplication.run(ApiApplication.class, args);
     }
 }
