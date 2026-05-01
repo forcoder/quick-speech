@@ -19,17 +19,14 @@ COPY knowledge/src knowledge/src
 COPY agent/src agent/src
 
 RUN mvn clean package -pl api -am -DskipTests -B && \
-    ls -la /build/api/target/*.jar && \
-    java -version
+    ls -la /build/api/target/*.jar
 
-FROM amazoncorretto:17-alpine-jdk
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
 COPY --from=builder /build/api/target/api-*.jar app.jar
 
-RUN java -version
-
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xmx256m", "-XX:+UseContainerSupport", "-jar", "app.jar"]
