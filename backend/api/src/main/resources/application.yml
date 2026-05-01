@@ -6,7 +6,7 @@ spring:
     name: quick-speech-api
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/quick_speech}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/quick_speech?sslmode=require}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -14,12 +14,11 @@ spring:
       minimum-idle: 1
       maximum-pool-size: 5
       idle-timeout: 30000
-      connection-timeout: 10000
-      initialization-fail-timeout: -1
+      connection-timeout: 20000
 
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
@@ -54,6 +53,18 @@ embedding:
 # Chroma向量数据库配置
 chroma:
   url: ${CHROMA_URL:http://localhost:8000}
+
+# Actuator配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    db:
+      enabled: false
+    diskspace:
+      enabled: false
 
 # 日志配置
 logging:
