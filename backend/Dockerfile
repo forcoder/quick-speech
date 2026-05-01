@@ -22,18 +22,14 @@ COPY common/src common/src
 COPY knowledge/src knowledge/src
 COPY agent/src agent/src
 
-RUN mvn clean package -pl api -am -DskipTests -B && \
-    ls -la /build/api/target/*.jar && \
-    java -jar /build/api/target/api-*.jar --version 2>/dev/null || true
+RUN mvn clean package -pl api -am -DskipTests -B
 
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
 COPY --from=builder /build/api/target/api-*.jar app.jar
 
-RUN java -version && ls -la /app/app.jar
-
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Djava.net.preferIPv4Stack=true", "-Xmx512m", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
