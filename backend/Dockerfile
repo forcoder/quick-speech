@@ -1,11 +1,10 @@
-FROM eclipse-temurin:17-jdk-alpine
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
 
 WORKDIR /build
 
-# 安装Maven
-RUN apk add --no-cache curl && \
-    curl -sL https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz | tar xz -C /opt && \
-    ln -s /opt/apache-maven-3.9.6/bin/mvn /usr/local/bin/mvn
+# 配置阿里云Maven镜像
+RUN mkdir -p /root/.m2 && \
+    echo '<?xml version="1.0" encoding="UTF-8"?><settings><mirrors><mirror><id>aliyun</id><mirrorOf>central</mirrorOf><url>https://maven.aliyun.com/repository/public</url></mirror></mirrors></settings>' > /root/.m2/settings.xml
 
 # 复制pom文件
 COPY pom.xml .
@@ -15,21 +14,21 @@ COPY knowledge/pom.xml knowledge/
 COPY agent/pom.xml agent/
 
 # 下载依赖
-RUN mvn dependency:go-offline -B || true
+RUN mvn dependency:resolve -B || true
 
-# 复制源码
+# 复制源码并构建
 COPY api/src api/src
 COPY common/src common/src
 COPY knowledge/src knowledge/src
 COPY agent/src agent/src
 
-# 构建
 RUN mvn clean package -pl api -am -DskipTests -B
 
-# 提取jar到/app
-RUN mkdir -p /app && cp /build/api/target/api-*.jar /app/app.jar
+FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
+
+COPY --from=builder /build/api/target/api-*.jar app.jar
 
 EXPOSE 8080
 
