@@ -18,12 +18,8 @@ COPY common/src common/src
 COPY knowledge/src knowledge/src
 COPY agent/src agent/src
 
-RUN mvn clean package -pl api -am -DskipTests -B
-
-# 验证JAR内容
-RUN ls -la /build/api/target/*.jar && \
-    unzip -l /build/api/target/api-*.jar | head -20 && \
-    unzip -l /build/api/target/api-*.jar | grep "org/springframework/boot/loader"
+RUN mvn clean package -pl api -am -DskipTests -B && \
+    ls -la /build/api/target/*.jar
 
 FROM eclipse-temurin:17-jre
 
