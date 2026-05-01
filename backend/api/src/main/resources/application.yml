@@ -20,47 +20,37 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    open-in-view: false
     show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-    open-in-view: false
 
   servlet:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
 
-# JWT配置
 jwt:
   secret: ${JWT_SECRET:quick-speech-jwt-secret-key-at-least-32-characters-long-for-production}
   expiration: 86400000
 
-# AI API配置
 ai:
   openai:
     api-key: ${OPENAI_API_KEY:}
     api-url: ${AI_API_URL:https://api.openai.com/v1/chat/completions}
   default-model: ${AI_DEFAULT_MODEL:gpt-4o-mini}
 
-# Embedding配置
 embedding:
   api:
     url: ${EMBEDDING_API_URL:https://api.openai.com/v1/embeddings}
     key: ${OPENAI_API_KEY:}
   model: ${EMBEDDING_MODEL:text-embedding-ada-002}
 
-# Chroma向量数据库配置
 chroma:
   url: ${CHROMA_URL:http://localhost:8000}
 
-# Actuator配置
 management:
   endpoints:
     web:
@@ -72,7 +62,6 @@ management:
     diskspace:
       enabled: false
 
-# 日志配置
 logging:
   level:
     root: INFO
