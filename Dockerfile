@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-alpine AS builder
+FROM eclipse-temurin:17-jdk-alpine
 
 WORKDIR /build
 
@@ -26,12 +26,10 @@ COPY agent/src agent/src
 # 构建
 RUN mvn clean package -pl api -am -DskipTests -B
 
-# 运行阶段
-FROM eclipse-temurin:17-jre-alpine
+# 提取jar到/app
+RUN mkdir -p /app && cp /build/api/target/api-*.jar /app/app.jar
 
 WORKDIR /app
-
-COPY --from=builder /build/api/target/api-*.jar app.jar
 
 EXPOSE 8080
 
