@@ -20,6 +20,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: '3.9.6'
+
       - name: Cache Maven
         uses: actions/cache@v4
         with:
@@ -28,13 +33,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Grant execute permission for mvnw
-        working-directory: ./backend
-        run: chmod +x mvnw
-
       - name: Build and test
         working-directory: ./backend
-        run: ./mvnw clean verify -B
+        run: mvn -N install -B && mvn -pl minimal clean verify -B
 
       - name: Upload test reports
         if: always()
