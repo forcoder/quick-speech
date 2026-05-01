@@ -19,13 +19,16 @@ COPY knowledge/src knowledge/src
 COPY agent/src agent/src
 
 RUN mvn clean package -pl api -am -DskipTests -B && \
-    ls -la /build/api/target/*.jar
+    ls -la /build/api/target/*.jar && \
+    java -version
 
-FROM eclipse-temurin:17-jre
+FROM amazoncorretto:17-alpine-jdk
 
 WORKDIR /app
 
 COPY --from=builder /build/api/target/api-*.jar app.jar
+
+RUN java -version
 
 EXPOSE 8080
 
