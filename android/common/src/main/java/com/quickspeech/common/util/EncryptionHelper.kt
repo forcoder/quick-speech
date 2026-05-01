@@ -1,6 +1,7 @@
 package com.quickspeech.common.util
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import androidx.security.crypto.EncryptedSharedPreferences
@@ -25,7 +26,7 @@ class EncryptionHelper @Inject constructor(
             .build()
     }
 
-    private val encryptedPrefs by lazy {
+    private val encryptedPrefs: SharedPreferences by lazy {
         EncryptedSharedPreferences.create(
             context,
             "quickspeech_secure_prefs",
