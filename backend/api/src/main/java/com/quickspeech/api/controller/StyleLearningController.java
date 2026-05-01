@@ -133,9 +133,11 @@ public class StyleLearningController {
         Long tenantId = getTenantId(request);
         Long userId = getUserId(request);
 
-        // 获取最近的用户行为记录
+        // 获取最近的用户行为记录（取最近100条）
         List<UserBehaviorRecord> records = behaviorRecordRepository
-                .findAllByTenantIdAndUserIdAndDeletedFalse(tenantId, userId);
+                .findAllByTenantIdAndUserIdAndDeletedFalse(tenantId, userId,
+                        PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "createdAt")))
+                .getContent();
 
         if (records.isEmpty()) {
             return ApiResponse.error(com.quickspeech.common.constant.ResponseCode.BAD_REQUEST.getCode(),
