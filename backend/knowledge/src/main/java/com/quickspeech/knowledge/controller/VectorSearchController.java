@@ -2,6 +2,7 @@ package com.quickspeech.knowledge.controller;
 
 import com.quickspeech.common.entity.ApiResponse;
 import com.quickspeech.knowledge.service.VectorSearchService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/vector")
+@ConditionalOnBean(VectorSearchService.class)
 public class VectorSearchController {
 
     private final VectorSearchService vectorSearchService;

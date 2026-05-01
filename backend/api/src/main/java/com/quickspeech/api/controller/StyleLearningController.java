@@ -5,6 +5,7 @@ import com.quickspeech.common.repository.UserBehaviorRecordRepository;
 import com.quickspeech.common.repository.UserStyleProfileRepository;
 import com.quickspeech.common.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/style")
+@ConditionalOnBean(UserBehaviorRecordRepository.class)
 public class StyleLearningController {
 
     private final UserBehaviorRecordRepository behaviorRecordRepository;

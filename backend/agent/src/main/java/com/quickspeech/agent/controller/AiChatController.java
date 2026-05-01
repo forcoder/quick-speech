@@ -6,6 +6,7 @@ import com.quickspeech.agent.service.AiAgentService;
 import com.quickspeech.agent.service.AiChatService;
 import com.quickspeech.common.repository.UserStyleProfileRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/chat")
+@ConditionalOnBean(AiChatService.class)
 public class AiChatController {
 
     private final AiChatService chatService;

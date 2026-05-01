@@ -7,6 +7,7 @@ import com.quickspeech.agent.entity.PromptTemplate;
 import com.quickspeech.agent.service.AiAgentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/agents")
+@ConditionalOnBean(AiAgentService.class)
 public class AiAgentController {
 
     private final AiAgentService agentService;

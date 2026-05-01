@@ -6,6 +6,7 @@ import com.quickspeech.knowledge.entity.DocumentChunk;
 import com.quickspeech.knowledge.entity.KnowledgeDocument;
 import com.quickspeech.knowledge.service.DocumentService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/documents")
+@ConditionalOnBean(DocumentService.class)
 public class DocumentController {
 
     private final DocumentService documentService;

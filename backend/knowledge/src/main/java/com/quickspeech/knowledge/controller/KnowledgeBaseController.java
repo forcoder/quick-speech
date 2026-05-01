@@ -6,12 +6,14 @@ import com.quickspeech.knowledge.entity.KnowledgeBase;
 import com.quickspeech.knowledge.service.KnowledgeBaseService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/knowledge-bases")
+@ConditionalOnBean(KnowledgeBaseService.class)
 public class KnowledgeBaseController {
 
     private final KnowledgeBaseService knowledgeBaseService;

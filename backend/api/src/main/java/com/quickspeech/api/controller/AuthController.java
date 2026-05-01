@@ -4,6 +4,7 @@ import com.quickspeech.common.entity.ApiResponse;
 import com.quickspeech.common.entity.User;
 import com.quickspeech.common.repository.UserRepository;
 import com.quickspeech.common.util.JwtUtil;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
+@ConditionalOnBean(UserRepository.class)
 public class AuthController {
 
     private final UserRepository userRepository;

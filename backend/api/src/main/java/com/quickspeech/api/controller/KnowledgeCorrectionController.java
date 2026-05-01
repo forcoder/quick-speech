@@ -8,6 +8,7 @@ import com.quickspeech.common.exception.BusinessException;
 import com.quickspeech.common.repository.UserKnowledgeCorrectionRepository;
 import com.quickspeech.common.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/corrections")
+@ConditionalOnBean(UserKnowledgeCorrectionRepository.class)
 public class KnowledgeCorrectionController {
 
     private final UserKnowledgeCorrectionRepository correctionRepository;
