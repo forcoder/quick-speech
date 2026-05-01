@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.util.Collections;
 
 @Component
-@org.springframework.boot.autoconfigure.condition.ConditionalOnBean(com.quickspeech.common.util.JwtUtil.class)
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;

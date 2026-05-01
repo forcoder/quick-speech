@@ -2,20 +2,21 @@ package com.quickspeech.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 
-@SpringBootApplication(scanBasePackages = "com.quickspeech")
+@SpringBootApplication(scanBasePackages = "com.quickspeech",
+    exclude = {
+        DataSourceAutoConfiguration.class,
+        HibernateJpaAutoConfiguration.class,
+        DataSourceTransactionManagerAutoConfiguration.class
+    })
 public class ApiApplication {
 
     public static void main(String[] args) {
-        System.out.println("=== STARTING QUICK SPEECH API ===");
-        System.out.println("PORT=" + System.getenv("PORT"));
-        try {
-            SpringApplication.run(ApiApplication.class, args);
-            System.out.println("=== SPRING BOOT STARTED SUCCESSFULLY ===");
-        } catch (Exception e) {
-            System.err.println("=== STARTUP FAILED ===");
-            e.printStackTrace(System.err);
-            System.exit(1);
-        }
+        System.out.println("Starting Quick Speech API...");
+        SpringApplication.run(ApiApplication.class, args);
+        System.out.println("Quick Speech API started successfully!");
     }
 }
