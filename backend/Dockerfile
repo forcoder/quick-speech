@@ -24,12 +24,22 @@ COPY agent/src agent/src
 
 RUN mvn clean package -pl api -am -DskipTests -B
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
 COPY --from=builder /build/api/target/api-*.jar app.jar
 
+# 创建启动脚本
+RUN echo '#!/bin/bash' > /app/start.sh && \
+    echo 'echo "=== Java Version ==="' >> /app/start.sh && \
+    echo 'java -version' >> /app/start.sh && \
+    echo 'echo "=== JAR Info ==="' >> /app/start.sh && \
+    echo 'ls -la /app/app.jar' >> /app/start.sh && \
+    echo 'echo "=== Starting Application ==="' >> /app/start.sh && \
+    echo 'java -Xmx512m -jar /app/app.jar' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["/app/start.sh"]
