@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.quickspeech.wubi.engine.EngineResult
-import com.quickspeech.wubi.engine.FrequencyLearner
 import com.quickspeech.wubi.engine.InputMode
 import com.quickspeech.wubi.engine.RankedCandidate
 import com.quickspeech.wubi.engine.WubiInputEngine
@@ -139,10 +138,8 @@ class WubiViewModel(
      * 重置学习数据
      */
     fun resetLearning() {
-        viewModelScope.launch {
-            FrequencyLearner(dao).resetLearning()
-            engine.refreshUserData()
-        }
+        engine.reset()
+        outputText.value = ""
     }
 
     /**
