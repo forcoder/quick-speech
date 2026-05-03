@@ -3,9 +3,6 @@ package com.quickspeech.wubi.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewModelScope
-import com.quickspeech.wubi.data.WubiDao
-import com.quickspeech.wubi.data.WubiDatabase
 import com.quickspeech.wubi.engine.EngineResult
 import com.quickspeech.wubi.engine.FrequencyLearner
 import com.quickspeech.wubi.engine.InputMode
@@ -20,10 +17,10 @@ import kotlinx.coroutines.launch
  * 五笔输入 ViewModel
  * 管理输入状态、候选词、设置项等
  */
-class WubiViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val dao: WubiDao = WubiDatabase.create(application).wubiDao()
-    private val engine = WubiInputEngine(dao)
+class WubiViewModel(
+    application: Application,
+    private val engine: WubiInputEngine
+) : AndroidViewModel(application) {
 
     // ========== 公开状态 ==========
 
