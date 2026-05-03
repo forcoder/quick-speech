@@ -106,7 +106,7 @@ class WubiInputDecoder {
     }
 
     private fun isPunctuation(key: Char): Boolean {
-        return key in "，。！？、；：""''（）【】《》"
+        return key in "，。！？、；：\"\"''（）【】《》"
     }
 
     companion object {
