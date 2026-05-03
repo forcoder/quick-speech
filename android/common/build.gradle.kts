@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.okhttp.logging.interceptor)
 
     implementation(libs.datastore.preferences)
+    implementation(libs.androidx.security.crypto)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.gson)
