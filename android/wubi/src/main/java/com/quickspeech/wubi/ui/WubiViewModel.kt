@@ -3,8 +3,6 @@ package com.quickspeech.wubi.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.quickspeech.wubi.data.WubiDao
-import com.quickspeech.wubi.data.WubiDatabase
 import androidx.lifecycle.viewModelScope
 import com.quickspeech.wubi.data.WubiDao
 import com.quickspeech.wubi.data.WubiDatabase
