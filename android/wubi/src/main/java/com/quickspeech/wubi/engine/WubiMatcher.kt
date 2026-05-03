@@ -30,7 +30,7 @@ class WubiMatcher(private val dao: WubiDao) {
     suspend fun prefixMatch(prefix: String, limit: Int = 20): List<WubiWordEntry> = withContext(Dispatchers.IO) {
         if (prefix.isBlank()) return@withContext emptyList()
         try {
-            dao.prefixMatch(prefix.lowercase(), limit)
+            dao.prefixMatch(prefix.lowercase() + "%", limit)
         } catch (e: Exception) {
             emptyList()
         }
@@ -73,7 +73,7 @@ class WubiMatcher(private val dao: WubiDao) {
 
         // 3. 降级为前缀匹配
         try {
-            dao.prefixMatch(lowerCode, limit)
+            dao.prefixMatch(lowerCode + "%", limit)
         } catch (e: Exception) {
             emptyList()
         }
@@ -111,7 +111,7 @@ class WubiMatcher(private val dao: WubiDao) {
         }
 
         // 第四优先级：前缀匹配
-        val prefixResults = try { dao.prefixMatch(lowerCode, limit) } catch (e: Exception) { emptyList() }
+        val prefixResults = try { dao.prefixMatch(lowerCode + "%", limit) } catch (e: Exception) { emptyList() }
         if (prefixResults.isNotEmpty()) {
             return@withContext MatchResult(lowerCode, prefixResults, MatchType.PREFIX)
         }

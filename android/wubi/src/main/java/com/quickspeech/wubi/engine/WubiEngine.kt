@@ -19,7 +19,7 @@ class WubiEngine @Inject constructor() {
         nativeSetScheme(scheme.code)
     }
 
-    fun enable纠错(enabled: Boolean) {
+    fun enableErrorCorrection(enabled: Boolean) {
         nativeEnableErrorCorrection(enabled)
     }
 

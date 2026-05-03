@@ -44,7 +44,7 @@ class WubiInputEngine @Inject constructor(
     init {
         // 设置默认86版方案
         wubiEngine.setScheme(WubiScheme.WUBI_86)
-        wubiEngine.enable纠错(true)
+        wubiEngine.enableErrorCorrection(true)
     }
 
     suspend fun refreshUserData() {

@@ -20,7 +20,7 @@ class AssociativeEngine(private val dao: WubiDao) {
     suspend fun associate(char: String, limit: Int = 20): List<WubiWordEntry> = withContext(Dispatchers.IO) {
         if (char.length != 1) return@withContext emptyList()
         try {
-            dao.associateWords(char, limit)
+            dao.associateWords("%$char%", limit)
         } catch (e: Exception) {
             emptyList()
         }
