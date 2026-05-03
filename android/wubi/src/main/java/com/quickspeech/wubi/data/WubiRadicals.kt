@@ -142,7 +142,7 @@ object WubiRadicals86 {
     val level2SimpleCode: Map<String, String> = buildMap {
         val pairs = listOf(
             "gf" to "五", "gg" to "于", "gd" to "天", "gs" to "末", "ga" to "开",
-            "fh" to "过", "fj"到 "理", "fk" to "事", "fl" to "画", "fm" to "现",
+            "fh" to "过", "fj" to "理", "fk" to "事", "fl" to "画", "fm" to "现",
             "gh" to "到", "gj" to "与", "gk" to "来", "gd" to "天", "gf" to "五",
             "hh" to "睛", "hj" to "旧", "hk" to "占", "hl" to "卤", "hm" to "贞",
             "jg" to "量", "jh" to "早", "jj" to "昌", "jk" to "蝇", "jl" to "曙",
