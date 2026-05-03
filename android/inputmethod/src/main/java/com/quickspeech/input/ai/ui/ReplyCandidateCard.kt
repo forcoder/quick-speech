@@ -54,7 +54,7 @@ fun ReplyCandidateCard(
                 Surface(
                     shape = RoundedCornerShape(4.dp),
                     color = when (reply.source) {
-                        ReplySource.KNOWNLEDGE_BASE -> MaterialTheme.colorScheme.tertiaryContainer
+                        ReplySource.KNOWLEDGE_BASE -> MaterialTheme.colorScheme.tertiaryContainer
                         ReplySource.AI_AGENT -> MaterialTheme.colorScheme.secondaryContainer
                         ReplySource.HYBRID -> MaterialTheme.colorScheme.primaryContainer
                     }
@@ -72,7 +72,7 @@ fun ReplyCandidateCard(
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                         color = when (reply.source) {
-                            ReplySource.KNOWNLEDGE_BASE -> MaterialTheme.colorScheme.onTertiaryContainer
+                            ReplySource.KNOWLEDGE_BASE -> MaterialTheme.colorScheme.onTertiaryContainer
                             ReplySource.AI_AGENT -> MaterialTheme.colorScheme.onSecondaryContainer
                             ReplySource.HYBRID -> MaterialTheme.colorScheme.onPrimaryContainer
                         }
