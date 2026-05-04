@@ -8,7 +8,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import com.quickspeech.input.ui.InputMethodKeyboardView
 import com.quickspeech.input.viewmodel.InputMethodViewModel
@@ -21,13 +20,14 @@ class QuickSpeechInputMethodService : InputMethodService() {
     }
 
     private lateinit var viewModel: InputMethodViewModel
-    private val lifecycleOwner = object : LifecycleOwner {
-        private val registry = LifecycleRegistry(this)
-        override val lifecycle: Lifecycle = registry
+    private val serviceLifecycleOwner = object : LifecycleOwner {
+        val registry = LifecycleRegistry(this)
+        override val lifecycle: Lifecycle get() = registry
     }
 
     override fun onCreate() {
         super.onCreate()
+        serviceLifecycleOwner.registry.currentState = Lifecycle.State.RESUMED
         Log.e(TAG, "onCreate")
 
         val wubiEngine = WubiEngine()
@@ -39,7 +39,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
     override fun onCreateInputView(): View {
         Log.e(TAG, "onCreateInputView")
         return ComposeView(this).apply {
-            setViewTreeLifecycleOwner(lifecycleOwner)
+            setViewTreeLifecycleOwner(serviceLifecycleOwner)
             setContent {
                 InputMethodKeyboardView(
                     viewModel = viewModel,
@@ -75,6 +75,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        serviceLifecycleOwner.registry.currentState = Lifecycle.State.DESTROYED
         Log.e(TAG, "onDestroy")
     }
 }
