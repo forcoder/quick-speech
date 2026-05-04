@@ -12,19 +12,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.quickspeech.common.ui.theme.QuickSpeechTheme
 import com.quickspeech.app.navigation.QuickSpeechNavHost
-import com.quickspeech.wubi.engine.WubiEngine
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var wubiEngine: WubiEngine
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.e("QuickSpeech", "WubiEngine native loaded: ${WubiEngine.isNativeLoaded}")
+        Log.e("QuickSpeech", "MainActivity onCreate")
         enableEdgeToEdge()
         setContent {
             QuickSpeechTheme {
