@@ -21,7 +21,7 @@ android {
     }
 
     signingConfigs {
-        release {
+        create("release") {
             storeFile = file(System.getenv("KEYSTORE_FILE") ?: "quickspeech-release-key.jks")
             storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
             keyAlias = System.getenv("KEY_ALIAS") ?: "quickspeech"
@@ -32,7 +32,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.release
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isMinifyEnabled = false
