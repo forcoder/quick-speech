@@ -37,7 +37,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
-        Log.e(TAG, "onStartInput restarting=$restarting inputType=${attribute?.inputType}")
+        Log.e(TAG, "onStartInput restarting=$restarting")
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
@@ -53,8 +53,8 @@ class QuickSpeechInputMethodService : InputMethodService() {
     }
 
     override fun onEvaluateInputViewShown(): Boolean {
-        Log.e(TAG, "onEvaluateInputViewShown returning true")
-        return true
+        Log.e(TAG, "onEvaluateInputViewShown")
+        return super.onEvaluateInputViewShown()
     }
 
     override fun onBindInput() {
