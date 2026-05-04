@@ -40,7 +40,7 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
-        freeCompilerArgs += ["-Xstring-concat=inline"]
+        freeCompilerArgs += listOf("-Xstring-concat=inline")
     }
 
     buildFeatures {
