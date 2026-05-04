@@ -29,8 +29,8 @@ class QuickSpeechInputMethodService : InputMethodService() {
         return ComposeView(this).apply {
             setContent {
                 if (viewModel == null) {
-                    viewModel = ViewModelProvider(viewModelStoreOwner, defaultViewModelFactory)
-                        [InputMethodViewModel::class.java]
+                    val provider = ViewModelProvider(viewModelStoreOwner, defaultViewModelFactory)
+                    viewModel = provider.get(InputMethodViewModel::class.java)
                 }
                 InputMethodKeyboardView(
                     viewModel = viewModel!!,
