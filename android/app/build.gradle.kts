@@ -27,7 +27,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            proguardFile("proguard-release-rules.pro")
         }
         debug {
             isMinifyEnabled = false
@@ -41,6 +40,7 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += ["-Xstring-concat=inline"]
     }
 
     buildFeatures {
