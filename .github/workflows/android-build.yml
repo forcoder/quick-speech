@@ -40,9 +40,16 @@ jobs:
         working-directory: ./android
         run: gradle assembleDebug
 
+      - name: Restore keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/quickspeech-release-key.jks
+
       - name: Build release APK
         working-directory: ./android
         run: gradle assembleRelease
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: quickspeech
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
