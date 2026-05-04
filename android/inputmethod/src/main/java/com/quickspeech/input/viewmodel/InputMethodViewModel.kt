@@ -1,16 +1,19 @@
 package com.quickspeech.input.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.quickspeech.common.util.IoDispatcher
 import com.quickspeech.wubi.engine.WubiEngine
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Singleton
 
 data class InputMethodUiState(
     val inputCode: String = "",
@@ -34,11 +37,13 @@ enum class AiMode(val label: String) {
     HYBRID("hybrid")
 }
 
-@HiltViewModel
+@Singleton
 class InputMethodViewModel @Inject constructor(
     private val wubiEngine: WubiEngine,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
+
+    private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
 
     private val _uiState = MutableStateFlow(InputMethodUiState())
     val uiState: StateFlow<InputMethodUiState> = _uiState.asStateFlow()
@@ -67,12 +72,10 @@ class InputMethodViewModel @Inject constructor(
             inputCode = "",
             candidates = emptyList()
         )
-        // Candidate committed via callback
     }
 
     fun onAiReplySelected(reply: AiReplyUiItem) {
         _uiState.value = _uiState.value.copy(aiReplies = emptyList(), isAiPanelVisible = false)
-        // Reply committed via callback
     }
 
     fun toggleAiPanel() {
@@ -99,15 +102,18 @@ class InputMethodViewModel @Inject constructor(
     }
 
     private fun searchCandidates(code: String) {
-        viewModelScope.launch(ioDispatcher) {
+        scope.launch {
             val results = wubiEngine.search(code)
             _uiState.value = _uiState.value.copy(candidates = results)
         }
     }
 
     private fun detectAppType() {
-        // Detect current application type for context-aware AI replies
         _uiState.value = _uiState.value.copy(appType = "general")
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        scope.cancel()
+    }
 }
