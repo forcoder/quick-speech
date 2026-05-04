@@ -1,8 +1,6 @@
 package com.quickspeech.input
 
-import android.content.Intent
 import android.inputmethodservice.InputMethodService
-import android.os.IBinder
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -43,13 +41,6 @@ class QuickSpeechInputMethodService : InputMethodService() {
         }
 
         Log.e(TAG, "onCreate finished")
-    }
-
-    override fun onBind(intent: Intent): IBinder? {
-        Log.e(TAG, "onBind called with action=${intent.action}")
-        val binder = super.onBind(intent)
-        Log.e(TAG, "onBind returning: $binder")
-        return binder
     }
 
     override fun onCreateInputView(): View {
