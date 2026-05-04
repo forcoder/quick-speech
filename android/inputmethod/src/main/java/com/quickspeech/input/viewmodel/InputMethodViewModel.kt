@@ -1,9 +1,8 @@
 package com.quickspeech.input.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.quickspeech.common.util.IoDispatcher
 import com.quickspeech.wubi.engine.WubiEngine
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,9 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import android.util.Log
-import javax.inject.Inject
-import javax.inject.Singleton
 
 data class InputMethodUiState(
     val inputCode: String = "",
@@ -38,13 +34,11 @@ enum class AiMode(val label: String) {
     HYBRID("hybrid")
 }
 
-@Singleton
-class InputMethodViewModel @Inject constructor(
-    private val wubiEngine: WubiEngine,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+class InputMethodViewModel(
+    private val wubiEngine: WubiEngine
 ) : ViewModel() {
 
-    private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _uiState = MutableStateFlow(InputMethodUiState())
     val uiState: StateFlow<InputMethodUiState> = _uiState.asStateFlow()
@@ -73,10 +67,7 @@ class InputMethodViewModel @Inject constructor(
     }
 
     fun onCandidateSelected(candidate: String) {
-        _uiState.value = _uiState.value.copy(
-            inputCode = "",
-            candidates = emptyList()
-        )
+        _uiState.value = _uiState.value.copy(inputCode = "", candidates = emptyList())
     }
 
     fun onAiReplySelected(reply: AiReplyUiItem) {
@@ -84,18 +75,14 @@ class InputMethodViewModel @Inject constructor(
     }
 
     fun toggleAiPanel() {
-        _uiState.value = _uiState.value.copy(
-            isAiPanelVisible = !_uiState.value.isAiPanelVisible
-        )
+        _uiState.value = _uiState.value.copy(isAiPanelVisible = !_uiState.value.isAiPanelVisible)
     }
 
     fun setAiMode(mode: AiMode) {
         _uiState.value = _uiState.value.copy(aiMode = mode)
     }
 
-    fun onInputStarted() {
-        detectAppType()
-    }
+    fun onInputStarted() {}
 
     fun onInputFinished() {
         _uiState.value = _uiState.value.copy(
@@ -111,10 +98,6 @@ class InputMethodViewModel @Inject constructor(
             val results = wubiEngine.search(code)
             _uiState.value = _uiState.value.copy(candidates = results)
         }
-    }
-
-    private fun detectAppType() {
-        _uiState.value = _uiState.value.copy(appType = "general")
     }
 
     override fun onCleared() {

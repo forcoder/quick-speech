@@ -7,20 +7,38 @@ import android.view.inputmethod.EditorInfo
 import androidx.compose.ui.platform.ComposeView
 import com.quickspeech.input.ui.InputMethodKeyboardView
 import com.quickspeech.input.viewmodel.InputMethodViewModel
-import dagger.hilt.android.AndroidEntryPoint
+import com.quickspeech.wubi.engine.WubiEngine
+import dagger.hilt.android.EntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import javax.inject.Inject
 
-@AndroidEntryPoint
+@EntryPoint
+@dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
+interface ImeEntryPoint {
+    fun wubiEngine(): WubiEngine
+}
+
 class QuickSpeechInputMethodService : InputMethodService() {
 
-    private val TAG = "QuickSpeechIME"
+    companion object {
+        private const val TAG = "QuickSpeechIME"
+    }
 
-    @Inject
-    lateinit var viewModel: InputMethodViewModel
+    private lateinit var viewModel: InputMethodViewModel
 
     override fun onCreate() {
-        super.onCreate()
+        super.onCreate(savedInstanceState)
         Log.e(TAG, "onCreate")
+
+        // 手动从 Hilt 获取依赖（InputMethodService 不支持 @AndroidEntryPoint）
+        val entryPoint = EntryPointAccessors.fromApplication(
+            applicationContext,
+            ImeEntryPoint::class.java
+        )
+        val wubiEngine = entryPoint.wubiEngine()
+        Log.e(TAG, "WubiEngine native loaded: ${WubiEngine.isNativeLoaded}")
+
+        viewModel = InputMethodViewModel(wubiEngine)
     }
 
     override fun onCreateInputView(): View {
@@ -43,28 +61,15 @@ class QuickSpeechInputMethodService : InputMethodService() {
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         Log.e(TAG, "onStartInputView restarting=$restarting")
-        viewModel.onInputStarted()
     }
 
     override fun onFinishInput() {
         super.onFinishInput()
         Log.e(TAG, "onFinishInput")
-        viewModel.onInputFinished()
     }
 
     override fun onEvaluateInputViewShown(): Boolean {
-        Log.e(TAG, "onEvaluateInputViewShown")
         return super.onEvaluateInputViewShown()
-    }
-
-    override fun onBindInput() {
-        super.onBindInput()
-        Log.e(TAG, "onBindInput")
-    }
-
-    override fun onUnbindInput() {
-        super.onUnbindInput()
-        Log.e(TAG, "onUnbindInput")
     }
 
     private fun insertText(text: String) {
@@ -75,5 +80,8 @@ class QuickSpeechInputMethodService : InputMethodService() {
     override fun onDestroy() {
         super.onDestroy()
         Log.e(TAG, "onDestroy")
+        if (::viewModel.isInitialized) {
+            viewModel.onCleared()
+        }
     }
 }

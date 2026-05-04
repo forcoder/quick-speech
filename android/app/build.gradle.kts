@@ -57,6 +57,7 @@ android {
 dependencies {
     implementation(project(":common"))
     implementation(project(":inputmethod"))
+    implementation(project(":wubi"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

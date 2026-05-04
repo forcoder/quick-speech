@@ -17,16 +17,9 @@ Java_com_quickspeech_wubi_engine_WubiEngine_nativeSearch(
     jobject /* this */,
     jstring code
 ) {
-    const char* codeStr = env->GetStringUTFChars(code, nullptr);
-    std::string query(codeStr);
-    env->ReleaseStringUTFChars(code, codeStr);
-
-    // Placeholder: return empty results
-    // TODO: Implement real wubi dictionary lookup
+    // 返回空结果 - 词典搜索在 Java 层实现
     jclass stringClass = env->FindClass("java/lang/String");
     jobjectArray result = env->NewObjectArray(0, stringClass, nullptr);
-
-    LOGI("Search query: %s", query.c_str());
     return result;
 }
 
@@ -37,7 +30,6 @@ Java_com_quickspeech_wubi_engine_WubiEngine_nativeSetScheme(
     jint schemeCode
 ) {
     g_scheme = schemeCode;
-    LOGI("Scheme set to: %d", schemeCode);
 }
 
 JNIEXPORT void JNICALL
@@ -47,7 +39,6 @@ Java_com_quickspeech_wubi_engine_WubiEngine_nativeEnableErrorCorrection(
     jboolean enabled
 ) {
     g_errorCorrection = enabled;
-    LOGI("Error correction: %d", enabled);
 }
 
 } // extern "C"
