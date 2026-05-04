@@ -16,9 +16,12 @@ class WubiEngine @Inject constructor() {
             try {
                 System.loadLibrary("wubi-engine")
                 isNativeLoaded = true
-                Log.d(TAG, "Native library loaded successfully")
+                Log.e(TAG, "Native library loaded successfully")
             } catch (e: UnsatisfiedLinkError) {
-                Log.w(TAG, "Failed to load native library: ${e.message}")
+                Log.e(TAG, "Failed to load native library: ${e.message}")
+                isNativeLoaded = false
+            } catch (e: Throwable) {
+                Log.e(TAG, "Unexpected error loading native library", e)
                 isNativeLoaded = false
             }
         }
