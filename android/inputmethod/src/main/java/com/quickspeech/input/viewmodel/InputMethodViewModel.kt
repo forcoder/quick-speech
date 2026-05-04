@@ -1,18 +1,16 @@
 package com.quickspeech.input.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.quickspeech.common.util.IoDispatcher
-import com.quickspeech.common.util.Resource
 import com.quickspeech.wubi.engine.WubiEngine
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class InputMethodUiState(
     val inputCode: String = "",
@@ -36,7 +34,8 @@ enum class AiMode(val label: String) {
     HYBRID("hybrid")
 }
 
-class InputMethodViewModel @AssistedInject constructor(
+@HiltViewModel
+class InputMethodViewModel @Inject constructor(
     private val wubiEngine: WubiEngine,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
@@ -111,8 +110,4 @@ class InputMethodViewModel @AssistedInject constructor(
         _uiState.value = _uiState.value.copy(appType = "general")
     }
 
-    @AssistedFactory
-    interface Factory {
-        fun create(): InputMethodViewModel
-    }
 }
