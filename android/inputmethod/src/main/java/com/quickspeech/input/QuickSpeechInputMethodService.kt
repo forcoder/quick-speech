@@ -5,9 +5,15 @@ import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.compose.ui.platform.ComposeView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.ViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
 import com.quickspeech.input.ui.InputMethodKeyboardView
 import com.quickspeech.input.viewmodel.InputMethodViewModel
 import com.quickspeech.wubi.engine.WubiEngine
+
 class QuickSpeechInputMethodService : InputMethodService() {
 
     companion object {
@@ -15,6 +21,10 @@ class QuickSpeechInputMethodService : InputMethodService() {
     }
 
     private lateinit var viewModel: InputMethodViewModel
+    private val lifecycleOwner = object : LifecycleOwner {
+        private val registry = LifecycleRegistry(this)
+        override val lifecycle: Lifecycle = registry
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -29,6 +39,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
     override fun onCreateInputView(): View {
         Log.e(TAG, "onCreateInputView")
         return ComposeView(this).apply {
+            setViewTreeLifecycleOwner(lifecycleOwner)
             setContent {
                 InputMethodKeyboardView(
                     viewModel = viewModel,
