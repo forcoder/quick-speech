@@ -17,7 +17,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
     private lateinit var viewModel: InputMethodViewModel
 
     override fun onCreate() {
-        super.onCreate(savedInstanceState)
+        super.onCreate()
         Log.e(TAG, "onCreate")
 
         val wubiEngine = WubiEngine()
@@ -65,8 +65,5 @@ class QuickSpeechInputMethodService : InputMethodService() {
     override fun onDestroy() {
         super.onDestroy()
         Log.e(TAG, "onDestroy")
-        if (::viewModel.isInitialized) {
-            viewModel.onCleared()
-        }
     }
 }
