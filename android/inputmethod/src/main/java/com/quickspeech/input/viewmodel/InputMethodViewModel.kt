@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,6 +48,10 @@ class InputMethodViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(InputMethodUiState())
     val uiState: StateFlow<InputMethodUiState> = _uiState.asStateFlow()
+
+    init {
+        Log.e("QuickSpeech", "InputMethodViewModel created, nativeLoaded=${WubiEngine.isNativeLoaded}")
+    }
 
     fun onKeyInput(key: String) {
         val newCode = _uiState.value.inputCode + key
