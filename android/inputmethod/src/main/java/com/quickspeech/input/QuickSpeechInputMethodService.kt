@@ -8,16 +8,6 @@ import androidx.compose.ui.platform.ComposeView
 import com.quickspeech.input.ui.InputMethodKeyboardView
 import com.quickspeech.input.viewmodel.InputMethodViewModel
 import com.quickspeech.wubi.engine.WubiEngine
-import dagger.hilt.android.EntryPoint
-import dagger.hilt.android.EntryPointAccessors
-import javax.inject.Inject
-
-@EntryPoint
-@dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
-interface ImeEntryPoint {
-    fun wubiEngine(): WubiEngine
-}
-
 class QuickSpeechInputMethodService : InputMethodService() {
 
     companion object {
@@ -30,12 +20,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
         super.onCreate(savedInstanceState)
         Log.e(TAG, "onCreate")
 
-        // 手动从 Hilt 获取依赖（InputMethodService 不支持 @AndroidEntryPoint）
-        val entryPoint = EntryPointAccessors.fromApplication(
-            applicationContext,
-            ImeEntryPoint::class.java
-        )
-        val wubiEngine = entryPoint.wubiEngine()
+        val wubiEngine = WubiEngine()
         Log.e(TAG, "WubiEngine native loaded: ${WubiEngine.isNativeLoaded}")
 
         viewModel = InputMethodViewModel(wubiEngine)
