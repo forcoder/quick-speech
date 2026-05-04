@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <!-- Candidate bar -->
+    <LinearLayout
+        android:id="@+id/candidate_bar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:background="#E0E0E0">
+
+        <TextView
+            android:id="@+id/input_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#1976D2"
+            android:textSize="14sp"
+            android:paddingEnd="8dp" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/candidates_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+
+        </HorizontalScrollView>
+
+    </LinearLayout>
+
+    <!-- Keyboard rows -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="4dp"
+        android:background="#E0E0E0">
+
+        <!-- Row 1: QWERTYUIOP -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button android:id="@+id/key_q" style="@style/WubiKey" android:text="Q" />
+            <Button android:id="@+id/key_w" style="@style/WubiKey" android:text="W" />
+            <Button android:id="@+id/key_e" style="@style/WubiKey" android:text="E" />
+            <Button android:id="@+id/key_r" style="@style/WubiKey" android:text="R" />
+            <Button android:id="@+id/key_t" style="@style/WubiKey" android:text="T" />
+            <Button android:id="@+id/key_y" style="@style/WubiKey" android:text="Y" />
+            <Button android:id="@+id/key_u" style="@style/WubiKey" android:text="U" />
+            <Button android:id="@+id/key_i" style="@style/WubiKey" android:text="I" />
+            <Button android:id="@+id/key_o" style="@style/WubiKey" android:text="O" />
+            <Button android:id="@+id/key_p" style="@style/WubiKey" android:text="P" />
+
+        </LinearLayout>
+
+        <!-- Row 2: ASDFGHJKL -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button android:id="@+id/key_a" style="@style/WubiKey" android:text="A" />
+            <Button android:id="@+id/key_s" style="@style/WubiKey" android:text="S" />
+            <Button android:id="@+id/key_d" style="@style/WubiKey" android:text="D" />
+            <Button android:id="@+id/key_f" style="@style/WubiKey" android:text="F" />
+            <Button android:id="@+id/key_g" style="@style/WubiKey" android:text="G" />
+            <Button android:id="@+id/key_h" style="@style/WubiKey" android:text="H" />
+            <Button android:id="@+id/key_j" style="@style/WubiKey" android:text="J" />
+            <Button android:id="@+id/key_k" style="@style/WubiKey" android:text="K" />
+            <Button android:id="@+id/key_l" style="@style/WubiKey" android:text="L" />
+
+        </LinearLayout>
+
+        <!-- Row 3: ZXCVBNM + Backspace + Enter -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <Button
+                android:id="@+id/key_backspace"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
+                android:layout_margin="2dp"
+                android:background="@android:drawable/ic_input_delete"
+                android:contentDescription="删除" />
+
+            <Button android:id="@+id/key_z" style="@style/WubiKey" android:text="Z" />
+            <Button android:id="@+id/key_x" style="@style/WubiKey" android:text="X" />
+            <Button android:id="@+id/key_c" style="@style/WubiKey" android:text="C" />
+            <Button android:id="@+id/key_v" style="@style/WubiKey" android:text="V" />
+            <Button android:id="@+id/key_b" style="@style/WubiKey" android:text="B" />
+            <Button android:id="@+id/key_n" style="@style/WubiKey" android:text="N" />
+            <Button android:id="@+id/key_m" style="@style/WubiKey" android:text="M" />
+
+            <Button
+                android:id="@+id/key_enter"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
+                android:layout_margin="2dp"
+                android:text="↵"
+                android:textSize="18sp"
+                android:background="#1976D2"
+                android:textColor="#FFFFFF"
+                android:contentDescription="回车" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>
