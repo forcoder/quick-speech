@@ -1,6 +1,8 @@
 package com.quickspeech.input
 
+import android.content.Intent
 import android.inputmethodservice.InputMethodService
+import android.os.IBinder
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -28,12 +30,26 @@ class QuickSpeechInputMethodService : InputMethodService() {
     override fun onCreate() {
         super.onCreate()
         serviceLifecycleOwner.registry.currentState = Lifecycle.State.RESUMED
-        Log.e(TAG, "onCreate")
+        Log.e(TAG, "onCreate entered")
 
-        val wubiEngine = WubiEngine()
-        Log.e(TAG, "WubiEngine native loaded: ${WubiEngine.isNativeLoaded}")
+        try {
+            val wubiEngine = WubiEngine()
+            Log.e(TAG, "WubiEngine created, native loaded: ${WubiEngine.isNativeLoaded}")
+            viewModel = InputMethodViewModel(wubiEngine)
+            Log.e(TAG, "ViewModel created")
+        } catch (e: Throwable) {
+            Log.e(TAG, "Error in onCreate", e)
+            throw e
+        }
 
-        viewModel = InputMethodViewModel(wubiEngine)
+        Log.e(TAG, "onCreate finished")
+    }
+
+    override fun onBind(intent: Intent): IBinder? {
+        Log.e(TAG, "onBind called with action=${intent.action}")
+        val binder = super.onBind(intent)
+        Log.e(TAG, "onBind returning: $binder")
+        return binder
     }
 
     override fun onCreateInputView(): View {
