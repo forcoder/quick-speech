@@ -8,9 +8,12 @@
     <application
         android:name=".QuickSpeechApplication"
         android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.QuickSpeech"
+        tools:replace="android:theme"
         tools:targetApi="35">
 
         <activity
@@ -22,6 +25,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ImeTestActivity"
+            android:exported="true"
+            android:label="IME 测试"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.QuickSpeech" />
 
         <activity
             android:name=".SettingsActivity"

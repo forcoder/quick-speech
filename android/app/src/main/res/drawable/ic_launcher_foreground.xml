@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108"
+    android:tint="#FFFFFF">
+
+    <!-- Keyboard row hints: three subtle horizontal bars at bottom -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.12"
+        android:pathData="M30,80h48v2.5H30z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.12"
+        android:pathData="M30,85h48v2.5H30z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.12"
+        android:pathData="M30,90h48v2.5H30z"/>
+
+    <!-- Letter "K" - bold geometric -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M32,30h7v13l13,-13h9l-15,16l16,16h-10l-14,-15v15h-7V30z"/>
+
+    <!-- Letter "S" - bold geometric -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M64,30c7,0 13,4 13,11c0,4 -2,7 -7,9l-7,3h13v5h-19v-4l7,-4c4,-1 5,-4 5,-7c0,-3 -2,-5 -6,-5c-3,0 -5,2 -5,5h-7c0,-6 6,-11 13,-11z"/>
+
+    <!-- Small accent dot - teal spark -->
+    <path
+        android:fillColor="#64FFDA"
+        android:pathData="M80,26 A3,3,0,1,1,80,32 A3,3,0,1,1,80,26z"/>
+
+</vector>
