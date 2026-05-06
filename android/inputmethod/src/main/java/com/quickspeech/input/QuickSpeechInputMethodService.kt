@@ -1,12 +1,15 @@
 package com.quickspeech.input
 
+import android.content.Intent
 import android.inputmethodservice.InputMethodService
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import com.quickspeech.input.viewmodel.InputMethodViewModel
 import com.quickspeech.wubi.engine.WubiEngine
 
@@ -17,6 +20,8 @@ class QuickSpeechInputMethodService : InputMethodService() {
     }
 
     private lateinit var viewModel: InputMethodViewModel
+    private var isEnglishMode = false
+    private var isSymbolMode = false
 
     override fun onCreate() {
         super.onCreate()
@@ -52,9 +57,16 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
         for (keyId in letterKeyIds) {
             view.findViewById<TextView>(keyId)?.setOnClickListener { v ->
-                val key = (v as TextView).text.toString().lowercase()
-                viewModel.onKeyInput(key)
-                updateCandidates(view)
+                val key = (v as TextView).text.toString()
+                if (isEnglishMode) {
+                    // English mode: commit letter directly
+                    val ic = currentInputConnection ?: return@setOnClickListener
+                    ic.commitText(key, 1)
+                } else {
+                    // Wubi mode: process through engine
+                    viewModel.onKeyInput(key.lowercase())
+                    updateCandidates(view)
+                }
             }
         }
 
@@ -65,23 +77,99 @@ class QuickSpeechInputMethodService : InputMethodService() {
         )
         for (keyId in numKeyIds) {
             view.findViewById<TextView>(keyId)?.setOnClickListener { v ->
-                val num = (v as TextView).text.toString()
-                val ic = currentInputConnection ?: return@setOnClickListener
-                ic.commitText(num, 1)
+                if (isSymbolMode) {
+                    // Symbol mode: map numbers to common symbols
+                    val symbols = listOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
+                    val idx = (v as TextView).text.toString().toIntOrNull() ?: return@setOnClickListener
+                    if (idx in 0..9) {
+                        val ic = currentInputConnection ?: return@setOnClickListener
+                        ic.commitText(symbols[idx], 1)
+                    }
+                } else {
+                    val num = (v as TextView).text.toString()
+                    val ic = currentInputConnection ?: return@setOnClickListener
+                    ic.commitText(num, 1)
+                }
             }
         }
 
         // Backspace
         view.findViewById<TextView>(R.id.key_backspace)?.setOnClickListener {
-            viewModel.onDelete()
-            updateCandidates(view)
+            if (!isEnglishMode && viewModel.uiState.value.inputCode.isNotEmpty()) {
+                viewModel.onDelete()
+                updateCandidates(view)
+            } else {
+                val ic = currentInputConnection ?: return@setOnClickListener
+                ic.deleteSurroundingText(1, 0)
+            }
         }
 
         // Enter
         view.findViewById<TextView>(R.id.key_enter)?.setOnClickListener {
-            val ic = currentInputConnection ?: return@setOnClickListener
-            ic.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER))
-            ic.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENTER))
+            if (!isEnglishMode && viewModel.uiState.value.candidates.isNotEmpty()) {
+                // Commit first candidate
+                val candidate = viewModel.uiState.value.candidates.first()
+                viewModel.onCandidateSelected(candidate)
+                val ic = currentInputConnection ?: return@setOnClickListener
+                ic.commitText(candidate, 1)
+                updateCandidates(view)
+            } else {
+                val ic = currentInputConnection ?: return@setOnClickListener
+                ic.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER))
+                ic.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENTER))
+            }
+        }
+
+        // Symbol toggle
+        view.findViewById<TextView>(R.id.key_symbol)?.setOnClickListener {
+            isSymbolMode = !isSymbolMode
+            val key = view.findViewById<TextView>(R.id.key_symbol)
+            if (isSymbolMode) {
+                key?.text = "ABC"
+                key?.setBackgroundColor(0xFF4A90D9.toInt())
+                key?.setTextColor(0xFFFFFFFF.toInt())
+            } else {
+                key?.text = "符"
+                key?.setBackgroundColor(0xFFC8CACC.toInt())
+                key?.setTextColor(0xFF555555.toInt())
+            }
+        }
+
+        // Number toggle (switch between number row and letter row)
+        view.findViewById<TextView>(R.id.key_toggle_num)?.setOnClickListener {
+            // Toggle number row visibility is handled by always showing numbers
+            // This key can be used to switch to pure number pad in future
+            Toast.makeText(this, "数字模式", Toast.LENGTH_SHORT).show()
+        }
+
+        // Language toggle (Chinese/English)
+        view.findViewById<TextView>(R.id.key_toggle_lang)?.setOnClickListener {
+            isEnglishMode = !isEnglishMode
+            val key = view.findViewById<TextView>(R.id.key_toggle_lang)
+            if (isEnglishMode) {
+                key?.text = "英"
+                key?.setBackgroundColor(0xFF4A90D9.toInt())
+                key?.setTextColor(0xFFFFFFFF.toInt())
+            } else {
+                key?.text = "中/英"
+                key?.setBackgroundColor(0xFFC8CACC.toInt())
+                key?.setTextColor(0xFF555555.toInt())
+            }
+        }
+
+        // Voice input
+        view.findViewById<TextView>(R.id.key_voice)?.setOnClickListener {
+            try {
+                val intent = Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                    putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                    putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "zh-CN")
+                    putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "请说话...")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "语音输入不可用", Toast.LENGTH_SHORT).show()
+            }
         }
 
         return view
@@ -120,10 +208,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
-        Log.e(TAG, "onStartInput restarting=$restarting attribute=$attribute")
-        if (attribute != null) {
-            Log.e(TAG, "onStartInput inputType=${attribute.inputType} imeOptions=${attribute.imeOptions}")
-        }
+        Log.e(TAG, "onStartInput restarting=$restarting")
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
