@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.quickspeech.input.viewmodel.InputMethodViewModel
@@ -41,7 +40,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
         val view = LayoutInflater.from(this).inflate(R.layout.input_method_view, null)
 
-        // Set up key listeners
+        // Letter keys
         val letterKeyIds = listOf(
             R.id.key_q, R.id.key_w, R.id.key_e, R.id.key_r, R.id.key_t,
             R.id.key_y, R.id.key_u, R.id.key_i, R.id.key_o, R.id.key_p,
@@ -52,8 +51,8 @@ class QuickSpeechInputMethodService : InputMethodService() {
         )
 
         for (keyId in letterKeyIds) {
-            view.findViewById<Button>(keyId)?.setOnClickListener { btn ->
-                val key = (btn as Button).text.toString().lowercase()
+            view.findViewById<TextView>(keyId)?.setOnClickListener { v ->
+                val key = (v as TextView).text.toString().lowercase()
                 viewModel.onKeyInput(key)
                 updateCandidates(view)
             }
@@ -65,19 +64,21 @@ class QuickSpeechInputMethodService : InputMethodService() {
             R.id.key_6, R.id.key_7, R.id.key_8, R.id.key_9, R.id.key_0
         )
         for (keyId in numKeyIds) {
-            view.findViewById<Button>(keyId)?.setOnClickListener { btn ->
-                val num = (btn as Button).text.toString()
+            view.findViewById<TextView>(keyId)?.setOnClickListener { v ->
+                val num = (v as TextView).text.toString()
                 val ic = currentInputConnection ?: return@setOnClickListener
                 ic.commitText(num, 1)
             }
         }
 
-        view.findViewById<Button>(R.id.key_backspace)?.setOnClickListener {
+        // Backspace
+        view.findViewById<TextView>(R.id.key_backspace)?.setOnClickListener {
             viewModel.onDelete()
             updateCandidates(view)
         }
 
-        view.findViewById<Button>(R.id.key_enter)?.setOnClickListener {
+        // Enter
+        view.findViewById<TextView>(R.id.key_enter)?.setOnClickListener {
             val ic = currentInputConnection ?: return@setOnClickListener
             ic.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER))
             ic.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENTER))
@@ -146,11 +147,6 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
     override fun onEvaluateInputViewShown(): Boolean {
         return true
-    }
-
-    private fun insertText(text: String) {
-        val ic = currentInputConnection ?: return
-        ic.commitText(text, 1)
     }
 
     override fun onDestroy() {
