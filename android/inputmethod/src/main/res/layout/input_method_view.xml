@@ -42,6 +42,124 @@
 
     </LinearLayout>
 
+    <!-- AI 建议回复区域（可折叠） -->
+    <LinearLayout
+        android:id="@+id/ai_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#F0F2F4"
+        android:visibility="gone">
+
+        <!-- AI 面板标题栏 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:background="#E8EAEC">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💡 AI 建议"
+                android:textSize="11sp"
+                android:textColor="#555555"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- 知识库搜索入口 -->
+            <TextView
+                android:id="@+id/btn_knowledge_search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📚 知识库"
+                android:textSize="10sp"
+                android:textColor="#1565C0"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <!-- 模式切换 -->
+            <TextView
+                android:id="@+id/btn_ai_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔀"
+                android:textSize="10sp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <!-- 收起按钮 -->
+            <TextView
+                android:id="@+id/btn_ai_collapse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="▼"
+                android:textSize="10sp"
+                android:textColor="#999999"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
+        <!-- AI 回复列表 -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:padding="4dp">
+
+            <LinearLayout
+                android:id="@+id/ai_replies_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical" />
+
+        </HorizontalScrollView>
+
+        <!-- 知识库搜索结果区域 -->
+        <LinearLayout
+            android:id="@+id/knowledge_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📚 知识库搜索结果"
+                android:textSize="11sp"
+                android:textColor="#555555"
+                android:textStyle="bold"
+                android:paddingBottom="4dp" />
+
+            <LinearLayout
+                android:id="@+id/knowledge_results_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
     <!-- 键盘区域 -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -123,7 +241,7 @@
 
         </LinearLayout>
 
-        <!-- 功能切换行：符号 | 123 | 中/英 | 语音 | 删除 | 回车 -->
+        <!-- 功能切换行 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -139,14 +257,14 @@
                 android:textSize="12sp"
                 android:text="符" />
 
-            <!-- 数字/字母切换 -->
+            <!-- AI 面板展开 -->
             <TextView
-                android:id="@+id/key_toggle_num"
+                android:id="@+id/key_ai_toggle"
                 style="@style/WubiKey.Func"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:textSize="12sp"
-                android:text="123" />
+                android:text="💡" />
 
             <!-- 中英文切换 -->
             <TextView

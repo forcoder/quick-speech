@@ -2,16 +2,26 @@ package com.quickspeech.input
 
 import android.content.Intent
 import android.inputmethodservice.InputMethodService
-import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import com.quickspeech.input.ai.data.AiReply
+import com.quickspeech.input.ai.data.ReplyMode
+import com.quickspeech.input.ai.data.ReplySource
+import com.quickspeech.input.ai.network.AiReplyRepository
+import com.quickspeech.input.ai.network.AiReplyResult
+import com.quickspeech.input.di.ImeEntryPoint
 import com.quickspeech.input.viewmodel.InputMethodViewModel
 import com.quickspeech.wubi.engine.WubiEngine
+import dagger.hilt.EntryPoints
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class QuickSpeechInputMethodService : InputMethodService() {
 
@@ -20,21 +30,33 @@ class QuickSpeechInputMethodService : InputMethodService() {
     }
 
     private lateinit var viewModel: InputMethodViewModel
+    private lateinit var aiRepository: AiReplyRepository
+    private lateinit var apiService: com.quickspeech.common.network.ApiService
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private var isEnglishMode = false
     private var isSymbolMode = false
+    private var isAiPanelVisible = false
+    private var currentAiMode = ReplyMode.HYBRID
+    private var currentInputText = ""
+    private var inputView: View? = null
 
     override fun onCreate() {
         super.onCreate()
         Log.e(TAG, "onCreate entered")
 
         try {
+            // Get Hilt dependencies via EntryPoint
+            val entryPoint = EntryPoints.get(applicationContext, ImeEntryPoint::class.java)
+            aiRepository = entryPoint.aiReplyRepository()
+            apiService = entryPoint.apiService()
+
             val wubiEngine = WubiEngine()
             Log.e(TAG, "WubiEngine created, native loaded: ${WubiEngine.isNativeLoaded}")
             viewModel = InputMethodViewModel(wubiEngine)
             Log.e(TAG, "ViewModel created")
         } catch (e: Throwable) {
             Log.e(TAG, "Error in onCreate", e)
-            throw e
         }
 
         Log.e(TAG, "onCreate finished")
@@ -59,35 +81,32 @@ class QuickSpeechInputMethodService : InputMethodService() {
             view.findViewById<TextView>(keyId)?.setOnClickListener { v ->
                 val key = (v as TextView).text.toString()
                 if (isEnglishMode) {
-                    // English mode: commit letter directly
                     val ic = currentInputConnection ?: return@setOnClickListener
                     ic.commitText(key, 1)
+                    currentInputText += key
+                    triggerAiSuggestions()
                 } else {
-                    // Wubi mode: process through engine
                     viewModel.onKeyInput(key.lowercase())
                     updateCandidates(view)
+                    updateInputTextFromCandidates(view)
                 }
             }
         }
 
-        // Number keys - commit directly
+        // Number keys
         val numKeyIds = listOf(
             R.id.key_1, R.id.key_2, R.id.key_3, R.id.key_4, R.id.key_5,
             R.id.key_6, R.id.key_7, R.id.key_8, R.id.key_9, R.id.key_0
         )
         for (keyId in numKeyIds) {
             view.findViewById<TextView>(keyId)?.setOnClickListener { v ->
+                val num = (v as TextView).text.toString()
+                val ic = currentInputConnection ?: return@setOnClickListener
                 if (isSymbolMode) {
-                    // Symbol mode: map numbers to common symbols
                     val symbols = listOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
-                    val idx = (v as TextView).text.toString().toIntOrNull() ?: return@setOnClickListener
-                    if (idx in 0..9) {
-                        val ic = currentInputConnection ?: return@setOnClickListener
-                        ic.commitText(symbols[idx], 1)
-                    }
+                    val idx = num.toIntOrNull() ?: return@setOnClickListener
+                    if (idx in 0..9) ic.commitText(symbols[idx], 1)
                 } else {
-                    val num = (v as TextView).text.toString()
-                    val ic = currentInputConnection ?: return@setOnClickListener
                     ic.commitText(num, 1)
                 }
             }
@@ -98,25 +117,33 @@ class QuickSpeechInputMethodService : InputMethodService() {
             if (!isEnglishMode && viewModel.uiState.value.inputCode.isNotEmpty()) {
                 viewModel.onDelete()
                 updateCandidates(view)
+                updateInputTextFromCandidates(view)
             } else {
                 val ic = currentInputConnection ?: return@setOnClickListener
                 ic.deleteSurroundingText(1, 0)
+                if (currentInputText.isNotEmpty()) {
+                    currentInputText = currentInputText.dropLast(1)
+                }
             }
         }
 
         // Enter
         view.findViewById<TextView>(R.id.key_enter)?.setOnClickListener {
             if (!isEnglishMode && viewModel.uiState.value.candidates.isNotEmpty()) {
-                // Commit first candidate
                 val candidate = viewModel.uiState.value.candidates.first()
                 viewModel.onCandidateSelected(candidate)
                 val ic = currentInputConnection ?: return@setOnClickListener
                 ic.commitText(candidate, 1)
+                currentInputText += candidate
                 updateCandidates(view)
+                triggerAiSuggestions()
             } else {
                 val ic = currentInputConnection ?: return@setOnClickListener
                 ic.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER))
                 ic.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENTER))
+                // Trigger AI suggestion on enter (sentence completed)
+                triggerAiSuggestions()
+                currentInputText = ""
             }
         }
 
@@ -135,14 +162,17 @@ class QuickSpeechInputMethodService : InputMethodService() {
             }
         }
 
-        // Number toggle (switch between number row and letter row)
-        view.findViewById<TextView>(R.id.key_toggle_num)?.setOnClickListener {
-            // Toggle number row visibility is handled by always showing numbers
-            // This key can be used to switch to pure number pad in future
-            Toast.makeText(this, "数字模式", Toast.LENGTH_SHORT).show()
+        // AI panel toggle
+        view.findViewById<TextView>(R.id.key_ai_toggle)?.setOnClickListener {
+            isAiPanelVisible = !isAiPanelVisible
+            val aiPanel = view.findViewById<LinearLayout>(R.id.ai_panel)
+            aiPanel?.visibility = if (isAiPanelVisible) View.VISIBLE else View.GONE
+            if (isAiPanelVisible) {
+                triggerAiSuggestions()
+            }
         }
 
-        // Language toggle (Chinese/English)
+        // Language toggle
         view.findViewById<TextView>(R.id.key_toggle_lang)?.setOnClickListener {
             isEnglishMode = !isEnglishMode
             val key = view.findViewById<TextView>(R.id.key_toggle_lang)
@@ -172,7 +202,188 @@ class QuickSpeechInputMethodService : InputMethodService() {
             }
         }
 
+        // AI panel collapse button
+        view.findViewById<TextView>(R.id.btn_ai_collapse)?.setOnClickListener {
+            isAiPanelVisible = false
+            view.findViewById<LinearLayout>(R.id.ai_panel)?.visibility = View.GONE
+        }
+
+        // AI mode switch
+        view.findViewById<TextView>(R.id.btn_ai_mode)?.setOnClickListener {
+            currentAiMode = when (currentAiMode) {
+                ReplyMode.KNOWLEDGE_BASE -> ReplyMode.AI_AGENT
+                ReplyMode.AI_AGENT -> ReplyMode.HYBRID
+                ReplyMode.HYBRID -> ReplyMode.KNOWLEDGE_BASE
+            }
+            val label = when (currentAiMode) {
+                ReplyMode.KNOWLEDGE_BASE -> "📚"
+                ReplyMode.AI_AGENT -> "🤖"
+                ReplyMode.HYBRID -> "🔀"
+            }
+            view.findViewById<TextView>(R.id.btn_ai_mode)?.text = label
+            Toast.makeText(this, "模式: ${currentAiMode.displayName}", Toast.LENGTH_SHORT).show()
+            if (isAiPanelVisible) triggerAiSuggestions()
+        }
+
+        // Knowledge search button
+        view.findViewById<TextView>(R.id.btn_knowledge_search)?.setOnClickListener {
+            val knowledgePanel = view.findViewById<LinearLayout>(R.id.knowledge_panel)
+            if (knowledgePanel?.visibility == View.VISIBLE) {
+                knowledgePanel.visibility = View.GONE
+            } else {
+                knowledgePanel?.visibility = View.VISIBLE
+                performKnowledgeSearch()
+            }
+        }
+
+        inputView = view
         return view
+    }
+
+    private fun updateInputTextFromCandidates(view: View) {
+        // Build current input text from candidates for AI context
+        val state = viewModel.uiState.value
+        if (state.candidates.isNotEmpty()) {
+            currentInputText = state.candidates.first()
+        }
+    }
+
+    private fun triggerAiSuggestions() {
+        if (!::aiRepository.isInitialized) return
+        if (currentInputText.isBlank()) return
+
+        scope.launch {
+            try {
+                val result = aiRepository.fetchReplies(
+                    inputContext = currentInputText,
+                    appPackage = "",
+                    appCategory = com.quickspeech.input.ai.data.AppCategory.OTHER
+                )
+                when (result) {
+                    is AiReplyResult.Success -> {
+                        Log.e(TAG, "AI replies received: ${result.replies.size}")
+                        // Store replies for UI update
+                        pendingReplies = result.replies
+                        runOnUiThread { updateAiRepliesView() }
+                    }
+                    is AiReplyResult.Error -> {
+                        Log.e(TAG, "AI reply error: ${result.message}")
+                    }
+                    is AiReplyResult.Loading -> { /* do nothing */ }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "AI suggestion error", e)
+            }
+        }
+    }
+
+    private var pendingReplies: List<AiReply> = emptyList()
+
+    private fun runOnUiThread(action: () -> Unit) {
+        android.os.Handler(android.os.Looper.getMainLooper()).post(action)
+    }
+
+    private fun updateAiRepliesView() {
+        try {
+            val view = inputView ?: return
+            val container = view.findViewById<LinearLayout>(R.id.ai_replies_container) ?: return
+            container.removeAllViews()
+
+            for (reply in pendingReplies.take(5)) {
+                val tv = TextView(this).apply {
+                    text = reply.text
+                    textSize = 13f
+                    setPadding(12, 8, 12, 8)
+                    setBackgroundColor(0xFFFFFFFF.toInt())
+                    setTextColor(0xFF333333.toInt())
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        marginEnd = 8
+                        topMargin = 2
+                        bottomMargin = 2
+                    }
+                    setOnClickListener {
+                        val ic = currentInputConnection ?: return@setOnClickListener
+                        ic.deleteSurroundingText(currentInputText.length, 0)
+                        ic.commitText(reply.text, 1)
+                        currentInputText = reply.text
+                    }
+                }
+                container.addView(tv)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating AI replies view", e)
+        }
+    }
+
+    private fun performKnowledgeSearch() {
+        val view = inputView ?: return
+        if (!::apiService.isInitialized) {
+            Toast.makeText(this, "知识库服务未就绪", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val query = currentInputText
+        if (query.isBlank()) {
+            Toast.makeText(this, "请先输入内容再搜索知识库", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        scope.launch {
+            try {
+                val request = com.quickspeech.common.network.model.KnowledgeSearchRequest(
+                    query = query,
+                    limit = 5
+                )
+                val response = apiService.searchKnowledge(request)
+                runOnUiThread {
+                    val container = view.findViewById<LinearLayout>(R.id.knowledge_results_container)
+                    container?.removeAllViews()
+
+                    if (response.isSuccessful && response.body() != null) {
+                        val results = response.body()!!.results
+                        if (results.isEmpty()) {
+                            val tv = TextView(this@QuickSpeechInputMethodService).apply {
+                                text = "未找到相关知识"
+                                textSize = 12f
+                                setTextColor(0xFF999999.toInt())
+                                setPadding(8, 8, 8, 8)
+                            }
+                            container?.addView(tv)
+                        } else {
+                            for (result in results) {
+                                val tv = TextView(this@QuickSpeechInputMethodService).apply {
+                                    text = "• ${result.content}"
+                                    textSize = 12f
+                                    setTextColor(0xFF333333.toInt())
+                                    setPadding(8, 6, 8, 6)
+                                    setOnClickListener {
+                                        val ic = currentInputConnection ?: return@setOnClickListener
+                                        ic.commitText(result.content, 1)
+                                    }
+                                }
+                                container?.addView(tv)
+                            }
+                        }
+                    } else {
+                        val tv = TextView(this@QuickSpeechInputMethodService).apply {
+                            text = "搜索失败: ${response.message()}"
+                            textSize = 12f
+                            setTextColor(0xFFCC0000.toInt())
+                            setPadding(8, 8, 8, 8)
+                        }
+                        container?.addView(tv)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Knowledge search error", e)
+                runOnUiThread {
+                    Toast.makeText(this@QuickSpeechInputMethodService, "搜索出错: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun updateCandidates(view: View) {
@@ -199,19 +410,16 @@ class QuickSpeechInputMethodService : InputMethodService() {
                     viewModel.onCandidateSelected(candidate)
                     val ic = currentInputConnection ?: return@setOnClickListener
                     ic.commitText(candidate, 1)
+                    currentInputText += candidate
                     updateCandidates(view)
+                    triggerAiSuggestions()
                 }
             }
             container?.addView(tv)
         }
     }
 
-    override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
-        super.onStartInput(attribute, restarting)
-        Log.e(TAG, "onStartInput restarting=$restarting")
-    }
-
-    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+    override fun onStartInputView(info: android.view.inputmethod.EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         Log.e(TAG, "onStartInputView restarting=$restarting")
         try {
@@ -225,17 +433,13 @@ class QuickSpeechInputMethodService : InputMethodService() {
         }
     }
 
-    override fun onFinishInput() {
-        super.onFinishInput()
-        Log.e(TAG, "onFinishInput")
-    }
-
     override fun onEvaluateInputViewShown(): Boolean {
         return true
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        scope.cancel()
         Log.e(TAG, "onDestroy")
     }
 }
