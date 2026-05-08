@@ -49,8 +49,10 @@ class InputMethodViewModel(
 
     fun onKeyInput(key: String) {
         val newCode = _uiState.value.inputCode + key
+        Log.e("QuickSpeech", "onKeyInput: key=$key, newCode=$newCode")
         _uiState.value = _uiState.value.copy(inputCode = newCode)
         searchCandidates(newCode)
+        Log.e("QuickSpeech", "onKeyInput result: code=${_uiState.value.inputCode}, candidates=${_uiState.value.candidates}")
     }
 
     fun onDelete() {

@@ -80,6 +80,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
         for (keyId in letterKeyIds) {
             view.findViewById<TextView>(keyId)?.setOnClickListener { v ->
                 val key = (v as TextView).text.toString()
+                Log.e(TAG, "Letter key pressed: $key, englishMode=$isEnglishMode")
                 if (isEnglishMode) {
                     val ic = currentInputConnection ?: return@setOnClickListener
                     ic.commitText(key, 1)
@@ -87,6 +88,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                     triggerAiSuggestions()
                 } else {
                     viewModel.onKeyInput(key.lowercase())
+                    Log.e(TAG, "After onKeyInput, code=${viewModel.uiState.value.inputCode}, candidates=${viewModel.uiState.value.candidates}")
                     updateCandidates(view)
                     updateInputTextFromCandidates(view)
                 }
