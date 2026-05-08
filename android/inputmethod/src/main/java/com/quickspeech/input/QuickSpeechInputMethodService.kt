@@ -190,15 +190,33 @@ class QuickSpeechInputMethodService : InputMethodService() {
         // Voice input
         view.findViewById<TextView>(R.id.key_voice)?.setOnClickListener {
             try {
-                val intent = Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                    putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                    putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "zh-CN")
-                    putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "请说话...")
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                // Check if speech recognition is available
+                val pm = packageManager
+                val activities = pm.queryIntentActivities(
+                    Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0
+                )
+                if (activities.isEmpty()) {
+                    // Fallback: try to open any voice input method
+                    val intent = Intent(Intent.ACTION_VOICE_COMMAND).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    try {
+                        startActivity(intent)
+                    } catch (e2: Exception) {
+                        Toast.makeText(this, "语音输入不可用，请安装语音识别应用", Toast.LENGTH_LONG).show()
+                    }
+                } else {
+                    val intent = Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                        putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                        putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "zh-CN")
+                        putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "请说话...")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(intent)
                 }
-                startActivity(intent)
             } catch (e: Exception) {
-                Toast.makeText(this, "语音输入不可用", Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "Voice input error", e)
+                Toast.makeText(this, "语音输入不可用: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
 

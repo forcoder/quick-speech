@@ -23,7 +23,8 @@
             android:textSize="12sp"
             android:textStyle="bold"
             android:paddingEnd="4dp"
-            android:minWidth="28dp" />
+            android:minWidth="28dp"
+            android:fontFamily="sans-serif" />
 
         <HorizontalScrollView
             android:layout_width="0dp"
@@ -64,22 +65,22 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="💡 AI 建议"
+                android:text="AI 建议"
                 android:textSize="11sp"
                 android:textColor="#555555"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:fontFamily="sans-serif" />
 
             <View
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <!-- 知识库搜索入口 -->
             <TextView
                 android:id="@+id/btn_knowledge_search"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📚 知识库"
+                android:text="知识库"
                 android:textSize="10sp"
                 android:textColor="#1565C0"
                 android:paddingStart="6dp"
@@ -87,32 +88,34 @@
                 android:paddingTop="2dp"
                 android:paddingBottom="2dp"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:fontFamily="sans-serif" />
 
-            <!-- 模式切换 -->
             <TextView
                 android:id="@+id/btn_ai_mode"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🔀"
+                android:text="混合"
                 android:textSize="10sp"
+                android:textColor="#1565C0"
                 android:paddingStart="4dp"
                 android:paddingEnd="4dp"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:fontFamily="sans-serif" />
 
-            <!-- 收起按钮 -->
             <TextView
                 android:id="@+id/btn_ai_collapse"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="▼"
+                android:text="收起"
                 android:textSize="10sp"
                 android:textColor="#999999"
                 android:paddingStart="4dp"
                 android:paddingEnd="4dp"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:fontFamily="sans-serif" />
 
         </LinearLayout>
 
@@ -144,11 +147,12 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📚 知识库搜索结果"
+                android:text="知识库搜索结果"
                 android:textSize="11sp"
                 android:textColor="#555555"
                 android:textStyle="bold"
-                android:paddingBottom="4dp" />
+                android:paddingBottom="4dp"
+                android:fontFamily="sans-serif" />
 
             <LinearLayout
                 android:id="@+id/knowledge_results_container"
@@ -165,12 +169,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="2dp">
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp"
+        android:paddingTop="1dp"
+        android:paddingBottom="2dp">
 
         <!-- 数字行 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:orientation="horizontal">
 
             <TextView android:id="@+id/key_1" style="@style/WubiKey.Num" android:text="1" />
@@ -189,7 +196,7 @@
         <!-- QWERTYUIOP -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:orientation="horizontal">
 
             <TextView android:id="@+id/key_q" style="@style/WubiKey" android:text="Q" />
@@ -208,10 +215,10 @@
         <!-- ASDFGHJKL 缩进 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:orientation="horizontal"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp">
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp">
 
             <TextView android:id="@+id/key_a" style="@style/WubiKey" android:text="A" />
             <TextView android:id="@+id/key_s" style="@style/WubiKey" android:text="S" />
@@ -228,7 +235,7 @@
         <!-- Z~M 行 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:orientation="horizontal">
 
             <TextView android:id="@+id/key_z" style="@style/WubiKey" android:text="Z" />
@@ -244,56 +251,50 @@
         <!-- 功能切换行 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:orientation="horizontal"
-            android:layout_marginTop="2dp">
+            android:layout_marginTop="1dp">
 
-            <!-- 符号切换 -->
             <TextView
                 android:id="@+id/key_symbol"
                 style="@style/WubiKey.Func"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:textSize="12sp"
-                android:text="符" />
+                android:text="符"
+                android:fontFamily="sans-serif" />
 
-            <!-- AI 面板展开 -->
             <TextView
                 android:id="@+id/key_ai_toggle"
                 style="@style/WubiKey.Func"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:textSize="12sp"
-                android:text="💡" />
+                android:text="AI"
+                android:fontFamily="sans-serif" />
 
-            <!-- 中英文切换 -->
             <TextView
                 android:id="@+id/key_toggle_lang"
                 style="@style/WubiKey.Func"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:textSize="12sp"
-                android:text="中/英" />
+                android:text="中/英"
+                android:fontFamily="sans-serif" />
 
-            <!-- 语音输入 -->
             <TextView
                 android:id="@+id/key_voice"
                 style="@style/WubiKey.Func"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:textSize="12sp"
-                android:text="🎤" />
+                android:text="语音"
+                android:fontFamily="sans-serif" />
 
-            <!-- 删除 -->
             <TextView
                 android:id="@+id/key_backspace"
                 style="@style/WubiKey.Func"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:textSize="16sp"
-                android:text="⌫" />
+                android:text="删除"
+                android:fontFamily="sans-serif" />
 
-            <!-- 回车 -->
             <TextView
                 android:id="@+id/key_enter"
                 style="@style/WubiKey.Func"
@@ -301,8 +302,8 @@
                 android:layout_weight="1"
                 android:background="@drawable/btn_enter_key_bg"
                 android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:text="Enter" />
+                android:text="回车"
+                android:fontFamily="sans-serif" />
 
         </LinearLayout>
 

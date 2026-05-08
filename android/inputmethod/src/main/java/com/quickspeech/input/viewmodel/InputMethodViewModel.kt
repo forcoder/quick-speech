@@ -94,10 +94,8 @@ class InputMethodViewModel(
     }
 
     private fun searchCandidates(code: String) {
-        scope.launch {
-            val results = wubiEngine.search(code)
-            _uiState.value = _uiState.value.copy(candidates = results)
-        }
+        val results = wubiEngine.search(code)
+        _uiState.value = _uiState.value.copy(candidates = results)
     }
 
     override fun onCleared() {
