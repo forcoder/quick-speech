@@ -23,6 +23,7 @@ abstract class WubiDatabase : RoomDatabase() {
                 WubiDatabase::class.java,
                 DATABASE_NAME
             )
+                .createFromAsset("database/wubi_dict.db")
                 .fallbackToDestructiveMigration()
                 .build()
         }
