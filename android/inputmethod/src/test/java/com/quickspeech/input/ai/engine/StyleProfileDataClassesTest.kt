@@ -1,9 +1,9 @@
 package com.quickspeech.input.ai.engine
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
  * Tests for the style profile data classes to ensure correct defaults and construction.
@@ -127,24 +127,24 @@ class StyleProfileDataClassesTest {
             )
         )
         assertEquals(3, profile.perSceneProfiles.size)
-        assertEquals(0.8f, profile.perSceneProfiles["email"]?.formalityScore)
-        assertEquals(0.2f, profile.perSceneProfiles["im"]?.formalityScore)
-        assertEquals(0.6f, profile.perSceneProfiles["document"]?.formalityScore)
+        assertEquals(0.8f, profile.perSceneProfiles["email"]!!.formalityScore, 0.01f)
+        assertEquals(0.2f, profile.perSceneProfiles["im"]!!.formalityScore, 0.01f)
+        assertEquals(0.6f, profile.perSceneProfiles["document"]!!.formalityScore, 0.01f)
     }
 
     @Test
     fun userStyleProfile_timeBasedPatterns_accessible() {
         val profile = UserStyleProfile(
             timeBasedPatterns = mapOf(
-                9 to 0.8f,   // 9 AM - formal
-                12 to 0.5f,  // noon - neutral
-                20 to 0.3f   // 8 PM - casual
+                9 to 0.8f,
+                12 to 0.5f,
+                20 to 0.3f
             )
         )
         assertEquals(3, profile.timeBasedPatterns.size)
-        assertEquals(0.8f, profile.timeBasedPatterns[9])
-        assertEquals(0.5f, profile.timeBasedPatterns[12])
-        assertEquals(0.3f, profile.timeBasedPatterns[20])
+        assertEquals(0.8f, profile.timeBasedPatterns[9]!!, 0.01f)
+        assertEquals(0.5f, profile.timeBasedPatterns[12]!!, 0.01f)
+        assertEquals(0.3f, profile.timeBasedPatterns[20]!!, 0.01f)
     }
 
     @Test

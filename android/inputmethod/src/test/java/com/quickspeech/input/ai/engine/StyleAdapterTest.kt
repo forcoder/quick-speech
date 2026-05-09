@@ -1,10 +1,10 @@
 package com.quickspeech.input.ai.engine
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class StyleAdapterTest {
 
@@ -24,7 +24,7 @@ class StyleAdapterTest {
             perSceneProfiles = mapOf("email" to SceneStyleProfile("email", 0.9f))
         )
         val result = styleAdapter.adaptReply("好", profile, "email")
-        assertTrue(result.length > 1, "Formal style should expand short text")
+        assertTrue("Formal style should expand short text", result.length > 1)
     }
 
     @Test
@@ -34,7 +34,7 @@ class StyleAdapterTest {
             perSceneProfiles = mapOf("im" to SceneStyleProfile("im", 0.1f))
         )
         val result = styleAdapter.adaptReply("已收到您的来信，我们会尽快处理。", profile, "im")
-        assertTrue(result.length <= 20, "Casual style should shorten formal text")
+        assertTrue("Casual style should shorten formal text", result.length <= 20)
     }
 
     @Test
@@ -44,7 +44,7 @@ class StyleAdapterTest {
             perSceneProfiles = mapOf("email" to SceneStyleProfile("email", 0.9f))
         )
         val result = styleAdapter.adaptReply("好的", profile, "email")
-        assertTrue(result.contains("收到") || result.contains("了解"), "Should expand '好的' in formal mode")
+        assertTrue("Should expand '好的' in formal mode", result.contains("收到") || result.contains("了解"))
     }
 
     @Test
@@ -54,7 +54,7 @@ class StyleAdapterTest {
             perSceneProfiles = mapOf("im" to SceneStyleProfile("im", 0.1f))
         )
         val result = styleAdapter.adaptReply("已收到", profile, "im")
-        assertTrue(result.contains("收到啦") || result.contains("收到"), "Should make formal text casual")
+        assertTrue("Should make formal text casual", result.contains("收到啦") || result.contains("收到"))
     }
 
     // ========== Punctuation Tests ==========
@@ -65,7 +65,7 @@ class StyleAdapterTest {
             punctuationStyle = PunctuationStyle(frequentExclamation = true)
         )
         val result = styleAdapter.adaptReply("好的。", profile, "general")
-        assertTrue(result.contains("！"), "Should add exclamation for frequent exclamation users")
+        assertTrue("Should add exclamation for frequent exclamation users", result.contains("！"))
     }
 
     @Test
@@ -74,7 +74,7 @@ class StyleAdapterTest {
             punctuationStyle = PunctuationStyle(frequentExclamation = false)
         )
         val result = styleAdapter.adaptReply("好的！", profile, "general")
-        assertFalse(result.contains("！"), "Should remove exclamation for non-exclamation users")
+        assertFalse("Should remove exclamation for non-exclamation users", result.contains("！"))
     }
 
     @Test
@@ -83,7 +83,7 @@ class StyleAdapterTest {
             punctuationStyle = PunctuationStyle(frequentEllipsis = true)
         )
         val result = styleAdapter.adaptReply("好的。", profile, "general")
-        assertTrue(result.contains("……"), "Should add ellipsis for frequent ellipsis users")
+        assertTrue("Should add ellipsis for frequent ellipsis users", result.contains("……"))
     }
 
     // ========== Emoji Tests ==========
@@ -97,7 +97,7 @@ class StyleAdapterTest {
             )
         )
         val result = styleAdapter.adaptReply("好的", profile, "general")
-        assertTrue(result.contains("👍") || result.contains("😊"), "Should add emoji for emoji users")
+        assertTrue("Should add emoji for emoji users", result.contains("👍") || result.contains("😊"))
     }
 
     @Test
@@ -106,7 +106,7 @@ class StyleAdapterTest {
             emojiUsage = EmojiUsage(usesEmoji = false)
         )
         val result = styleAdapter.adaptReply("好的", profile, "general")
-        assertFalse(result.contains("👍"), "Should not add emoji for non-emoji users")
+        assertFalse("Should not add emoji for non-emoji users", result.contains("👍"))
     }
 
     // ========== Sentence Length Tests ==========
@@ -118,7 +118,7 @@ class StyleAdapterTest {
             perSceneProfiles = mapOf("im" to SceneStyleProfile("im", 0.2f, avgResponseLength = 5f))
         )
         val result = styleAdapter.adaptReply("这是一个非常长的句子，用来测试句子长度调整功能是否正常工作。", profile, "im")
-        assertTrue(result.length <= 20, "Should simplify long sentences for short-preference users")
+        assertTrue("Should simplify long sentences for short-preference users", result.length <= 20)
     }
 
     // ========== Batch Adaptation Tests ==========
@@ -131,21 +131,21 @@ class StyleAdapterTest {
         )
         val replies = listOf("好", "收到", "谢谢")
         val results = styleAdapter.adaptReplies(replies, profile, "email")
-        assertEquals(3, results.size, "Should return same number of replies")
+        assertEquals("Should return same number of replies", 3, results.size)
     }
 
     @Test
     fun adaptReplies_emptyList_returnsEmpty() {
         val profile = UserStyleProfile()
         val results = styleAdapter.adaptReplies(emptyList(), profile, "general")
-        assertTrue(results.isEmpty(), "Should return empty list for empty input")
+        assertTrue("Should return empty list for empty input", results.isEmpty())
     }
 
     @Test
     fun adaptReply_blankReply_returnsBlank() {
         val profile = UserStyleProfile()
         val result = styleAdapter.adaptReply("", profile, "general")
-        assertEquals("", result, "Should return blank for blank input")
+        assertEquals("Should return blank for blank input", "", result)
     }
 
     // ========== Scene-Specific Tests ==========
@@ -161,15 +161,13 @@ class StyleAdapterTest {
         )
         val emailResult = styleAdapter.adaptReply("好", profile, "email")
         val imResult = styleAdapter.adaptReply("好", profile, "im")
-        // Email should be more formal (longer) than IM
-        assertTrue(emailResult.length >= imResult.length,
-            "Email result should be more formal than IM result")
+        assertTrue("Email result should be more formal than IM result", emailResult.length >= imResult.length)
     }
 
     @Test
     fun adaptReply_unknownScene_usesDefaultFormality() {
         val profile = UserStyleProfile(formalityScore = 0.5f)
         val result = styleAdapter.adaptReply("好的", profile, "unknown_scene")
-        assertEquals("好的", result, "Unknown scene should use default formality without changes")
+        assertEquals("Unknown scene should use default formality without changes", "好的", result)
     }
 }
