@@ -116,7 +116,59 @@ class WubiMatcher(private val dao: WubiDao) {
             return@withContext MatchResult(lowerCode, prefixResults, MatchType.PREFIX)
         }
 
+        // 第五优先级：相邻键位纠错
+        if (lowerCode.length in 1..4) {
+            val adjacentResults = adjacentKeyMatch(lowerCode, limit)
+            if (adjacentResults.candidates.isNotEmpty()) {
+                return@withContext adjacentResults
+            }
+        }
+
         MatchResult(lowerCode, emptyList(), MatchType.NONE)
+    }
+
+    /**
+     * 相邻键位纠错匹配
+     * 将编码中每个字符替换为物理相邻键位，生成候选编码后查询
+     * 适用于 QWERTY 键盘布局下的误触纠正
+     */
+    suspend fun adjacentKeyMatch(code: String, limit: Int = 20): MatchResult = withContext(Dispatchers.IO) {
+        if (code.length > 4) return@withContext MatchResult(code, emptyList(), MatchType.NONE)
+
+        // QWERTY 键盘相邻键位映射
+        val adjacentMap = mapOf(
+            'q' to "wa", 'w' to "qeas", 'e' to "wrsd", 'r' to "etdf",
+            't' to "ryfg", 'y' to "tugh", 'u' to "yijh", 'i' to "ujko",
+            'o' to "iklp", 'p' to "ol",
+            'a' to "qwsz", 's' to "awedx", 'd' to "serfcx",
+            'f' to "drtgvc", 'g' to "ftyhbv", 'h' to "gyujnb",
+            'j' to "huiknm", 'k' to "jiolm", 'l' to "kop",
+            'z' to "asx", 'x' to "zsdc", 'c' to "xdfv",
+            'v' to "cfgb", 'b' to "vghn", 'n' to "bhjm", 'm' to "njk"
+        )
+
+        val candidates = mutableSetOf<WubiWordEntry>()
+
+        // 对编码中每一位尝试替换为相邻键
+        for (i in code.indices) {
+            val originalChar = code[i]
+            val adjacentChars = adjacentMap[originalChar] ?: continue
+            for (replacement in adjacentChars) {
+                val correctedCode = code.substring(0, i) + replacement + code.substring(i + 1)
+                try {
+                    val results = dao.exactMatch(correctedCode)
+                    candidates.addAll(results)
+                } catch (_: Exception) {}
+            }
+        }
+
+        // 去重并按词频排序
+        val deduped = candidates.distinctBy { it.word }.sortedByDescending { it.frequency }.take(limit)
+        if (deduped.isNotEmpty()) {
+            MatchResult(code, deduped, MatchType.CORRECTED)
+        } else {
+            MatchResult(code, emptyList(), MatchType.NONE)
+        }
     }
 
     /**
