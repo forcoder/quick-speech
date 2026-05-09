@@ -566,16 +566,34 @@ class QuickSpeechInputMethodService : InputMethodService() {
         }
     }
 
+    /**
+     * 检测当前应用类型（上下文感知）
+     */
+    private fun detectAppCategory(): com.quickspeech.input.ai.data.AppCategory {
+        val pkg = currentInputEditorInfo?.packageName ?: return com.quickspeech.input.ai.data.AppCategory.OTHER
+        return when {
+            pkg.contains("mail") || pkg.contains("outlook") || pkg.contains("gmail") || pkg.contains("email") ->
+                com.quickspeech.input.ai.data.AppCategory.EMAIL
+            pkg.contains("whatsapp") || pkg.contains("telegram") || pkg.contains("wechat") ||
+            pkg.contains("qq") || pkg.contains("messenger") || pkg.contains("slack") || pkg.contains("dingtalk") ->
+                com.quickspeech.input.ai.data.AppCategory.INSTANT_MESSAGING
+            pkg.contains("docs") || pkg.contains("word") || pkg.contains("notion") || pkg.contains("evernote") ->
+                com.quickspeech.input.ai.data.AppCategory.DOCUMENT
+            else -> com.quickspeech.input.ai.data.AppCategory.OTHER
+        }
+    }
+
     // ===== AI suggestions =====
     private fun triggerAiSuggestions() {
         if (!::aiRepository.isInitialized) return
         if (currentInputText.isBlank()) return
+        val appCategory = detectAppCategory()
         scope.launch {
             try {
                 val result = aiRepository.fetchReplies(
                     inputContext = currentInputText,
-                    appPackage = "",
-                    appCategory = com.quickspeech.input.ai.data.AppCategory.OTHER
+                    appPackage = currentInputEditorInfo?.packageName ?: "",
+                    appCategory = appCategory
                 )
                 when (result) {
                     is AiReplyResult.Success -> {
