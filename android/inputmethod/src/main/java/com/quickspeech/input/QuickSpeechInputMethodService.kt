@@ -979,7 +979,10 @@ class QuickSpeechInputMethodService : InputMethodService() {
         }
     }
 
-    override fun onEvaluateInputViewShown(): Boolean = true
+    override fun onEvaluateInputViewShown(): Boolean {
+        super.onEvaluateInputViewShown()
+        return true
+    }
 
     override fun onDestroy() {
         super.onDestroy()
