@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- 字母键样式 -->
+    <!-- 字母键/数字键样式 -->
     <style name="WubiKey">
         <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">38dp</item>
+        <item name="android:layout_height">44dp</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:layout_margin">0.5dp</item>
+        <item name="android:layout_margin">1.5dp</item>
         <item name="android:background">@drawable/btn_key_bg</item>
         <item name="android:textSize">16sp</item>
-        <item name="android:textColor">#333333</item>
+        <item name="android:textColor">#222222</item>
         <item name="android:textStyle">bold</item>
         <item name="android:gravity">center</item>
         <item name="android:minWidth">0dp</item>
@@ -17,16 +17,18 @@
         <item name="android:padding">0dp</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:elevation">1dp</item>
     </style>
 
-    <!-- 数字键样式 -->
-    <style name="WubiKey.Num">
+    <!-- 功能键样式 -->
+    <style name="WubiKey.Func">
         <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">38dp</item>
+        <item name="android:layout_height">44dp</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:layout_margin">0.5dp</item>
-        <item name="android:background">@drawable/btn_key_bg</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:layout_margin">1.5dp</item>
+        <item name="android:background">@drawable/btn_func_key_bg</item>
+        <item name="android:textSize">11sp</item>
         <item name="android:textColor">#666666</item>
         <item name="android:textStyle">normal</item>
         <item name="android:gravity">center</item>
@@ -35,17 +37,18 @@
         <item name="android:padding">0dp</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
 
-    <!-- 功能键样式 -->
-    <style name="WubiKey.Func">
+    <!-- 空格键样式 -->
+    <style name="WubiKey.Space">
         <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">38dp</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:layout_margin">0.5dp</item>
-        <item name="android:background">@drawable/btn_func_key_bg</item>
-        <item name="android:textSize">18sp</item>
-        <item name="android:textColor">#555555</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:layout_weight">4</item>
+        <item name="android:layout_margin">1.5dp</item>
+        <item name="android:background">@drawable/btn_space_bg</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">#888888</item>
         <item name="android:textStyle">normal</item>
         <item name="android:gravity">center</item>
         <item name="android:minWidth">0dp</item>
@@ -53,6 +56,56 @@
         <item name="android:padding">0dp</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <!-- 回车键样式 -->
+    <style name="WubiKey.Enter">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:layout_weight">1.5</item>
+        <item name="android:layout_margin">1.5dp</item>
+        <item name="android:background">@drawable/btn_enter_key_bg</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:gravity">center</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <!-- Shift 激活样式 -->
+    <style name="WubiKey.ShiftActive">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:layout_weight">1.5</item>
+        <item name="android:layout_margin">1.5dp</item>
+        <item name="android:background">@drawable/btn_shift_active_bg</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:gravity">center</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <!-- 候选词样式 -->
+    <style name="WubiKey.Candidate">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#333333</item>
+        <item name="android:background">@drawable/btn_candidate_bg</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
 
 </resources>
