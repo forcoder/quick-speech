@@ -6,6 +6,8 @@ import com.quickspeech.wubi.data.WubiDao
 import com.quickspeech.wubi.data.WubiDatabase
 import com.quickspeech.wubi.engine.AssociativeEngine
 import com.quickspeech.wubi.engine.FrequencyLearner
+import com.quickspeech.wubi.data.UserRuleDao
+import com.quickspeech.wubi.engine.UserRuleEngine
 import com.quickspeech.wubi.engine.WubiInputEngine
 import com.quickspeech.wubi.engine.WubiMatcher
 import dagger.Module
@@ -35,6 +37,11 @@ object WubiHiltModule {
     }
 
     @Provides
+    fun provideUserRuleDao(database: WubiDatabase): UserRuleDao {
+        return database.userRuleDao()
+    }
+
+    @Provides
     fun provideWubiMatcher(dao: WubiDao): WubiMatcher {
         return WubiMatcher(dao)
     }
@@ -47,6 +54,11 @@ object WubiHiltModule {
     @Provides
     fun provideFrequencyLearner(dao: WubiDao): FrequencyLearner {
         return FrequencyLearner(dao)
+    }
+
+    @Provides
+    fun provideUserRuleEngine(ruleDao: UserRuleDao): UserRuleEngine {
+        return UserRuleEngine(ruleDao)
     }
 
     @Provides

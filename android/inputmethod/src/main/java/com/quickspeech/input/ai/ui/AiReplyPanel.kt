@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.quickspeech.input.ai.AiReplyViewModel
 import com.quickspeech.input.ai.data.AiReply
 import com.quickspeech.input.ai.data.ReplyMode
+import com.quickspeech.input.ai.engine.LocalReplyGenerator
 
 @Composable
 fun AiReplyPanel(
@@ -40,6 +42,7 @@ fun AiReplyPanel(
         AiReplyPanelContent(
             uiState = uiState,
             onModeSelected = { viewModel.switchMode(it) },
+            onStyleSelected = { viewModel.switchStyle(it) },
             onAdoptReply = { reply ->
                 onInsertText(reply.text)
                 viewModel.onReplyAdopted(reply)
@@ -48,6 +51,7 @@ fun AiReplyPanel(
             onThumbsDown = { viewModel.onThumbsDown(it) },
             onRefresh = { viewModel.refreshReplies() },
             onCollapse = { viewModel.collapsePanel() },
+            onToggleStyleBar = { viewModel.toggleStyleBar() },
             modifier = modifier
         )
     }
@@ -57,11 +61,13 @@ fun AiReplyPanel(
 fun AiReplyPanelContent(
     uiState: com.quickspeech.input.ai.AiReplyUiState,
     onModeSelected: (ReplyMode) -> Unit,
+    onStyleSelected: (LocalReplyGenerator.ReplyStyle) -> Unit,
     onAdoptReply: (AiReply) -> Unit,
     onThumbsUp: (AiReply) -> Unit,
     onThumbsDown: (AiReply) -> Unit,
     onRefresh: () -> Unit,
     onCollapse: () -> Unit,
+    onToggleStyleBar: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -75,7 +81,7 @@ fun AiReplyPanelContent(
                 .fillMaxWidth()
                 .padding(top = 8.dp)
         ) {
-            // 拖拽指示条
+            // Drag indicator
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
@@ -91,7 +97,7 @@ fun AiReplyPanelContent(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // 标题栏
+            // Title bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -111,6 +117,22 @@ fun AiReplyPanelContent(
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+
+                // Offline mode indicator
+                if (uiState.isOfflineMode) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Icon(
+                        imageVector = Icons.Outlined.CloudOff,
+                        contentDescription = "离线模式",
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = "离线",
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -147,15 +169,23 @@ fun AiReplyPanelContent(
                 }
             }
 
-            // 模式切换栏
+            // Mode switch bar
             ModeSwitchBar(
                 currentMode = uiState.currentMode,
                 onModeSelected = onModeSelected
             )
 
+            // Style toggle bar
+            StyleSwitchBar(
+                currentStyle = uiState.currentStyle,
+                onStyleSelected = onStyleSelected,
+                onToggle = onToggleStyleBar,
+                showStyleBar = uiState.showStyleBar
+            )
+
             Spacer(modifier = Modifier.height(4.dp))
 
-            // 回复候选列表（横向滑动）
+            // Reply candidate list (horizontal scroll)
             if (uiState.replies.isNotEmpty()) {
                 val listState = rememberLazyListState()
                 val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
@@ -203,7 +233,121 @@ fun AiReplyPanelContent(
 }
 
 /**
- * AI回复面板触发按钮（浮动按钮形式）
+ * Style switch bar for reply style selection (正式/随意/简洁)
+ */
+@Composable
+fun StyleSwitchBar(
+    currentStyle: LocalReplyGenerator.ReplyStyle,
+    onStyleSelected: (LocalReplyGenerator.ReplyStyle) -> Unit,
+    onToggle: () -> Unit,
+    showStyleBar: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        // Toggle button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "风格:",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = getStyleDisplayName(currentStyle),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(
+                onClick = onToggle,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = if (showStyleBar) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = "展开风格选项",
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
+        }
+
+        // Style options
+        AnimatedVisibility(visible = showStyleBar) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                LocalReplyGenerator.ReplyStyle.entries.forEach { style ->
+                    val isSelected = style == currentStyle
+                    val backgroundColor = if (isSelected) {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                    }
+                    val textColor = if (isSelected) {
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 4.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        color = backgroundColor,
+                        onClick = { onStyleSelected(style) }
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(vertical = 6.dp, horizontal = 4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = getStyleEmoji(style),
+                                fontSize = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = getStyleDisplayName(style),
+                                fontSize = 10.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = textColor
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun getStyleDisplayName(style: LocalReplyGenerator.ReplyStyle): String {
+    return when (style) {
+        LocalReplyGenerator.ReplyStyle.FORMAL -> "正式"
+        LocalReplyGenerator.ReplyStyle.CASUAL -> "随意"
+        LocalReplyGenerator.ReplyStyle.BRIEF -> "简洁"
+    }
+}
+
+private fun getStyleEmoji(style: LocalReplyGenerator.ReplyStyle): String {
+    return when (style) {
+        LocalReplyGenerator.ReplyStyle.FORMAL -> "👔"
+        LocalReplyGenerator.ReplyStyle.CASUAL -> "😊"
+        LocalReplyGenerator.ReplyStyle.BRIEF -> "⚡"
+    }
+}
+
+/**
+ * AI reply panel trigger button (floating button style)
  */
 @Composable
 fun AiReplyFab(

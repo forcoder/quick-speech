@@ -2,7 +2,13 @@ package com.quickspeech.input.di
 
 import android.content.Context
 import androidx.room.Room
+import com.quickspeech.input.ai.BehaviorRecorder
 import com.quickspeech.input.ai.data.*
+import com.quickspeech.input.ai.engine.LocalReplyGenerator
+import com.quickspeech.input.ai.engine.ReplyContextAnalyzer
+import com.quickspeech.input.ai.engine.StyleAdapter
+import com.quickspeech.input.ai.engine.StyleAnalyzer
+import com.quickspeech.input.ai.engine.StyleLearningEngine
 import com.quickspeech.input.ai.network.AiReplyApi
 import com.quickspeech.input.ai.network.AiReplyRepository
 import dagger.Module
@@ -54,11 +60,41 @@ object AiModule {
 
     @Provides
     @Singleton
+    fun provideLocalReplyGenerator(): LocalReplyGenerator {
+        return LocalReplyGenerator()
+    }
+
+    @Provides
+    @Singleton
+    fun provideReplyContextAnalyzer(): ReplyContextAnalyzer {
+        return ReplyContextAnalyzer()
+    }
+
+    @Provides
+    @Singleton
     fun provideAiReplyRepository(
         api: AiReplyApi,
         preferencesRepository: PreferencesRepository,
-        feedbackDao: UserFeedbackDao
+        feedbackDao: UserFeedbackDao,
+        localReplyGenerator: LocalReplyGenerator,
+        contextAnalyzer: ReplyContextAnalyzer
     ): AiReplyRepository {
-        return AiReplyRepository(api, preferencesRepository, feedbackDao)
+        return AiReplyRepository(api, preferencesRepository, feedbackDao, localReplyGenerator, contextAnalyzer)
+    }
+
+    @Provides
+    @Singleton
+    fun provideStyleAdapter(): StyleAdapter {
+        return StyleAdapter()
+    }
+
+    @Provides
+    @Singleton
+    fun provideStyleLearningEngine(
+        behaviorRecorder: BehaviorRecorder,
+        styleAnalyzer: StyleAnalyzer,
+        styleAdapter: StyleAdapter
+    ): StyleLearningEngine {
+        return StyleLearningEngine(behaviorRecorder, styleAnalyzer, styleAdapter)
     }
 }

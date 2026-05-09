@@ -10,12 +10,17 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.quickspeech.input.ai.data.AiReply
+import com.quickspeech.input.ai.data.AppCategory
 import com.quickspeech.input.ai.data.ReplyMode
 import com.quickspeech.input.ai.data.ReplySource
+import com.quickspeech.input.ai.engine.LocalReplyGenerator
 import com.quickspeech.input.ai.network.AiReplyRepository
 import com.quickspeech.input.ai.network.AiReplyResult
 import com.quickspeech.input.di.ImeEntryPoint
+import com.quickspeech.input.ui.UserRuleManager
 import com.quickspeech.input.viewmodel.InputMethodViewModel
+import com.quickspeech.input.viewmodel.UserRuleMatch
+import com.quickspeech.wubi.engine.UserRuleEngine
 import dagger.hilt.EntryPoints
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +37,8 @@ class QuickSpeechInputMethodService : InputMethodService() {
     private lateinit var viewModel: InputMethodViewModel
     private lateinit var aiRepository: AiReplyRepository
     private lateinit var apiService: com.quickspeech.common.network.ApiService
+    private lateinit var userRuleEngine: UserRuleEngine
+    private lateinit var userRuleManager: UserRuleManager
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private var isEnglishMode = false
@@ -40,9 +47,11 @@ class QuickSpeechInputMethodService : InputMethodService() {
     private var isCapsLock = false         // Caps lock (double tap Shift)
     private var isAiPanelVisible = false
     private var currentAiMode = ReplyMode.HYBRID
+    private var currentAiStyle = LocalReplyGenerator.ReplyStyle.CASUAL
     private var currentInputText = ""
     private var inputView: View? = null
     private var lastShiftTapTime = 0L
+    private var showAssociatedWords = false
 
 
     override fun onCreate() {
@@ -53,9 +62,11 @@ class QuickSpeechInputMethodService : InputMethodService() {
             aiRepository = entryPoint.aiReplyRepository()
             apiService = entryPoint.apiService()
             val wubiInputEngine = entryPoint.wubiInputEngine()
-            Log.e(TAG, "WubiInputEngine obtained from DI")
-            viewModel = InputMethodViewModel(wubiInputEngine)
-            Log.e(TAG, "ViewModel created with WubiInputEngine")
+            userRuleEngine = entryPoint.userRuleEngine()
+            Log.e(TAG, "WubiInputEngine + UserRuleEngine obtained from DI")
+            viewModel = InputMethodViewModel(wubiInputEngine, userRuleEngine)
+            userRuleManager = UserRuleManager(applicationContext, entryPoint.userRuleDao(), userRuleEngine)
+            Log.e(TAG, "ViewModel + UserRuleManager created")
         } catch (e: Throwable) {
             Log.e(TAG, "Error in onCreate", e)
         }
@@ -241,6 +252,12 @@ class QuickSpeechInputMethodService : InputMethodService() {
             }
         }
 
+        // Long press voice key: open rule management hint
+        view.findViewById<TextView>(R.id.key_voice)?.setOnLongClickListener {
+            showRuleManagementHint()
+            true
+        }
+
         // ===== Punctuation keys =====
         view.findViewWithTag<TextView>("comma")?.setOnClickListener {
             commitPunctuation("，")
@@ -251,15 +268,38 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
         // ===== Space key =====
         view.findViewWithTag<TextView>("space")?.setOnClickListener {
-            if (!isEnglishMode && !isSymbolMode && viewModel.uiState.value.candidates.isNotEmpty()) {
-                // Wubi mode: select first candidate with space
-                val candidate = viewModel.uiState.value.candidates.first()
-                viewModel.onCandidateSelected(candidate)
-                val ic = currentInputConnection ?: return@setOnClickListener
-                ic.commitText(candidate, 1)
-                currentInputText += candidate
-                updateCandidates(view)
-                triggerAiSuggestions()
+            if (!isEnglishMode && !isSymbolMode) {
+                val state = viewModel.uiState.value
+                // Priority 1: user rule match
+                if (state.userRuleMatch != null) {
+                    val match = state.userRuleMatch
+                    if (match.expansion.isNotEmpty()) {
+                        viewModel.onUserRuleSelected(match)
+                        val ic = currentInputConnection ?: return@setOnClickListener
+                        ic.commitText(match.expansion, 1)
+                        currentInputText += match.expansion
+                        updateCandidates(view)
+                        triggerAiSuggestions()
+                    } else {
+                        val ic = currentInputConnection ?: return@setOnClickListener
+                        ic.commitText(" ", 1)
+                        currentInputText += " "
+                    }
+                }
+                // Priority 2: Wubi candidates
+                else if (state.candidates.isNotEmpty()) {
+                    val candidate = state.candidates.first()
+                    viewModel.onCandidateSelected(candidate)
+                    val ic = currentInputConnection ?: return@setOnClickListener
+                    ic.commitText(candidate, 1)
+                    currentInputText += candidate
+                    updateCandidates(view)
+                    triggerAiSuggestions()
+                } else {
+                    val ic = currentInputConnection ?: return@setOnClickListener
+                    ic.commitText(" ", 1)
+                    currentInputText += " "
+                }
             } else {
                 val ic = currentInputConnection ?: return@setOnClickListener
                 ic.commitText(" ", 1)
@@ -295,6 +335,30 @@ class QuickSpeechInputMethodService : InputMethodService() {
             if (isAiPanelVisible) triggerAiSuggestions()
         }
 
+        // ===== AI style toggle (new: formal/casual/brief) =====
+        view.findViewById<TextView>(R.id.btn_ai_style)?.setOnClickListener {
+            currentAiStyle = when (currentAiStyle) {
+                LocalReplyGenerator.ReplyStyle.FORMAL -> LocalReplyGenerator.ReplyStyle.CASUAL
+                LocalReplyGenerator.ReplyStyle.CASUAL -> LocalReplyGenerator.ReplyStyle.BRIEF
+                LocalReplyGenerator.ReplyStyle.BRIEF -> LocalReplyGenerator.ReplyStyle.FORMAL
+            }
+            val label = when (currentAiStyle) {
+                LocalReplyGenerator.ReplyStyle.FORMAL -> "👔正式"
+                LocalReplyGenerator.ReplyStyle.CASUAL -> "😊随意"
+                LocalReplyGenerator.ReplyStyle.BRIEF -> "⚡简洁"
+            }
+            view.findViewById<TextView>(R.id.btn_ai_style)?.text = label
+            Toast.makeText(this, "风格: $label", Toast.LENGTH_SHORT).show()
+            if (isAiPanelVisible) triggerAiSuggestions()
+        }
+
+        // ===== AI refresh button (new: clear cache and regenerate) =====
+        view.findViewById<TextView>(R.id.btn_ai_refresh)?.setOnClickListener {
+            aiRepository.clearCache()
+            triggerAiSuggestions()
+            Toast.makeText(this, "已刷新", Toast.LENGTH_SHORT).show()
+        }
+
         // ===== Knowledge base search =====
         view.findViewById<TextView>(R.id.btn_knowledge_search)?.setOnClickListener {
             val knowledgePanel = view.findViewById<LinearLayout>(R.id.knowledge_panel)
@@ -306,8 +370,30 @@ class QuickSpeechInputMethodService : InputMethodService() {
             }
         }
 
+        // ===== Associated words expand/collapse toggle =====
+        view.findViewById<TextView>(R.id.btn_candidates_more)?.setOnClickListener {
+            showAssociatedWords = !showAssociatedWords
+            updateCandidates(view)
+            // Update button visual
+            view.findViewById<TextView>(R.id.btn_candidates_more)?.text =
+                if (showAssociatedWords) "▾" else "▸"
+        }
+
         // Bind Wubi radicals to letter keys
         com.quickspeech.input.ui.WubiKeyBinder.bindAllKeys(view)
+
+        // ===== Keyboard height proportional to screen width =====
+        val displayMetrics = resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+        val keyboardHeight = (screenWidth * 0.55f).toInt()
+        view.post {
+            val params = view.layoutParams ?: return@post
+            params.height = keyboardHeight
+            view.layoutParams = params
+        }
+        // Adjust key heights proportionally
+        val keyHeight = ((keyboardHeight - dpToPx(44) - dpToPx(16)) / 5).coerceAtLeast(dpToPx(36))
+        adjustKeyHeights(view, keyHeight)
 
         inputView = view
         updateShiftKeyVisual(view)
@@ -374,8 +460,23 @@ class QuickSpeechInputMethodService : InputMethodService() {
     // ===== Enter key handling =====
     private fun handleEnterKey() {
         val ic = currentInputConnection ?: return
-        if (!isEnglishMode && !isSymbolMode && viewModel.uiState.value.candidates.isNotEmpty()) {
-            val candidate = viewModel.uiState.value.candidates.first()
+        val state = viewModel.uiState.value
+        if (!isEnglishMode && !isSymbolMode && state.userRuleMatch != null) {
+            // Priority: user rule match
+            val match = state.userRuleMatch
+            if (match.expansion.isNotEmpty()) {
+                viewModel.onUserRuleSelected(match)
+                ic.commitText(match.expansion, 1)
+                currentInputText += match.expansion
+                inputView?.let { updateCandidates(it); triggerAiSuggestions() }
+            } else {
+                ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
+                ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
+                triggerAiSuggestions()
+                currentInputText = ""
+            }
+        } else if (!isEnglishMode && !isSymbolMode && state.candidates.isNotEmpty()) {
+            val candidate = state.candidates.first()
             viewModel.onCandidateSelected(candidate)
             ic.commitText(candidate, 1)
             currentInputText += candidate
@@ -497,6 +598,62 @@ class QuickSpeechInputMethodService : InputMethodService() {
         val container = view.findViewById<LinearLayout>(R.id.candidates_container)
         container?.removeAllViews()
 
+        // Show user rule match (highest priority, with special styling)
+        val ruleMatch = state.userRuleMatch
+        if (ruleMatch != null && ruleMatch.expansion.isNotEmpty()) {
+            val ruleTv = TextView(this).apply {
+                text = "📋 ${ruleMatch.expansion}"
+                textSize = 14f
+                setPadding(14, 6, 14, 6)
+                setTextColor(0xFF1565C0.toInt())
+                setBackgroundColor(0xFFE3F2FD.toInt())
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                ).apply { marginEnd = 4; topMargin = 4; bottomMargin = 4 }
+                setOnClickListener {
+                    viewModel.onUserRuleSelected(ruleMatch)
+                    val ic = currentInputConnection ?: return@setOnClickListener
+                    ic.commitText(ruleMatch.expansion, 1)
+                    currentInputText += ruleMatch.expansion
+                    updateCandidates(view)
+                    triggerAiSuggestions()
+                }
+            }
+            container?.addView(ruleTv)
+        }
+
+        // Show prefix-matching rule hints
+        for (rule in state.userRulePrefixMatches.take(3)) {
+            val hintTv = TextView(this).apply {
+                text = "📋 ${rule.shortcut}"
+                textSize = 12f
+                setPadding(10, 6, 10, 6)
+                setTextColor(0xFF7B1FA2.toInt())
+                setBackgroundColor(0xFFF3E5F5.toInt())
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                ).apply { marginEnd = 4; topMargin = 4; bottomMargin: 4 }
+                setOnClickListener {
+                    val match = UserRuleMatch(
+                        ruleId = rule.id,
+                        shortcut = rule.shortcut,
+                        expansion = rule.expansion,
+                        category = rule.category,
+                        description = rule.description
+                    )
+                    viewModel.onUserRuleSelected(match)
+                    val ic = currentInputConnection ?: return@setOnClickListener
+                    ic.commitText(rule.expansion, 1)
+                    currentInputText += rule.expansion
+                    updateCandidates(view)
+                    triggerAiSuggestions()
+                }
+            }
+            container?.addView(hintTv)
+        }
+
         // Show Wubi candidates
         for ((index, candidate) in state.candidates.take(10).withIndex()) {
             val tv = TextView(this).apply {
@@ -520,8 +677,8 @@ class QuickSpeechInputMethodService : InputMethodService() {
             container?.addView(tv)
         }
 
-        // Show associated words with separator
-        if (state.associatedWords.isNotEmpty()) {
+        // Show associated words with separator (expandable via ▸ button)
+        if (state.associatedWords.isNotEmpty() && showAssociatedWords) {
             // Add separator
             val separator = TextView(this).apply {
                 text = " | "
@@ -567,40 +724,78 @@ class QuickSpeechInputMethodService : InputMethodService() {
     }
 
     /**
-     * 检测当前应用类型（上下文感知）
+     * Adjust all key heights proportionally
      */
-    private fun detectAppCategory(): com.quickspeech.input.ai.data.AppCategory {
-        val pkg = currentInputEditorInfo?.packageName ?: return com.quickspeech.input.ai.data.AppCategory.OTHER
-        return when {
-            pkg.contains("mail") || pkg.contains("outlook") || pkg.contains("gmail") || pkg.contains("email") ->
-                com.quickspeech.input.ai.data.AppCategory.EMAIL
-            pkg.contains("whatsapp") || pkg.contains("telegram") || pkg.contains("wechat") ||
-            pkg.contains("qq") || pkg.contains("messenger") || pkg.contains("slack") || pkg.contains("dingtalk") ->
-                com.quickspeech.input.ai.data.AppCategory.INSTANT_MESSAGING
-            pkg.contains("docs") || pkg.contains("word") || pkg.contains("notion") || pkg.contains("evernote") ->
-                com.quickspeech.input.ai.data.AppCategory.DOCUMENT
-            else -> com.quickspeech.input.ai.data.AppCategory.OTHER
+    private fun adjustKeyHeights(view: View, heightPx: Int) {
+        val keyIds = listOf(
+            R.id.key_q, R.id.key_w, R.id.key_e, R.id.key_r, R.id.key_t,
+            R.id.key_y, R.id.key_u, R.id.key_i, R.id.key_o, R.id.key_p,
+            R.id.key_a, R.id.key_s, R.id.key_d, R.id.key_f, R.id.key_g,
+            R.id.key_h, R.id.key_j, R.id.key_k, R.id.key_l,
+            R.id.key_z, R.id.key_x, R.id.key_c, R.id.key_v, R.id.key_b,
+            R.id.key_n, R.id.key_m,
+            R.id.key_1, R.id.key_2, R.id.key_3, R.id.key_4, R.id.key_5,
+            R.id.key_6, R.id.key_7, R.id.key_8, R.id.key_9, R.id.key_0,
+            R.id.key_shift, R.id.key_enter, R.id.key_symbol, R.id.key_backspace,
+            R.id.key_toggle_lang, R.id.key_voice, R.id.key_ai_toggle
+        )
+        for (keyId in keyIds) {
+            view.findViewById<View>(keyId)?.layoutParams?.height = heightPx
         }
     }
 
-    // ===== AI suggestions =====
+    private fun dpToPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
+    }
+
+    /**
+     * Detect current app category (context-aware)
+     */
+    private fun detectAppCategory(): AppCategory {
+        val pkg = currentInputEditorInfo?.packageName ?: return AppCategory.OTHER
+        return when {
+            pkg.contains("mail") || pkg.contains("outlook") || pkg.contains("gmail") || pkg.contains("email") ->
+                AppCategory.EMAIL
+            pkg.contains("whatsapp") || pkg.contains("telegram") || pkg.contains("wechat") ||
+            pkg.contains("qq") || pkg.contains("messenger") || pkg.contains("slack") || pkg.contains("dingtalk") ->
+                AppCategory.INSTANT_MESSAGING
+            pkg.contains("docs") || pkg.contains("word") || pkg.contains("notion") || pkg.contains("evernote") ->
+                AppCategory.DOCUMENT
+            else -> AppCategory.OTHER
+        }
+    }
+
+    // ===== AI suggestions (enhanced with local fallback and style support) =====
     private fun triggerAiSuggestions() {
         if (!::aiRepository.isInitialized) return
         if (currentInputText.isBlank()) return
         val appCategory = detectAppCategory()
         scope.launch {
             try {
-                val result = aiRepository.fetchReplies(
+                val result = aiRepository.fetchRepliesWithFallback(
                     inputContext = currentInputText,
                     appPackage = currentInputEditorInfo?.packageName ?: "",
-                    appCategory = appCategory
+                    appCategory = appCategory,
+                    style = currentAiStyle
                 )
                 when (result) {
                     is AiReplyResult.Success -> {
                         pendingReplies = result.replies
                         runOnUiThread { updateAiRepliesView() }
                     }
-                    is AiReplyResult.Error -> Log.e(TAG, "AI error: ${result.message}")
+                    is AiReplyResult.Error -> {
+                        Log.e(TAG, "AI error: ${result.message}")
+                        // Try local-only fallback when network fails
+                        val localResult = aiRepository.generateLocalRepliesOnly(
+                            inputContext = currentInputText,
+                            appCategory = appCategory,
+                            style = currentAiStyle
+                        )
+                        if (localResult is AiReplyResult.Success) {
+                            pendingReplies = localResult.replies
+                            runOnUiThread { updateAiRepliesView() }
+                        }
+                    }
                     is AiReplyResult.Loading -> {}
                 }
             } catch (e: Exception) {
@@ -631,7 +826,15 @@ class QuickSpeechInputMethodService : InputMethodService() {
                     text = if (sourceLabel.isNotEmpty()) "$sourceLabel ${reply.text}" else reply.text
                     textSize = 13f
                     setPadding(12, 8, 12, 8)
-                    setBackgroundColor(0xFFFFFFFF.toInt())
+
+                    // Different background colors for AI-generated vs other sources
+                    val bgColor = when (reply.source) {
+                        ReplySource.KNOWLEDGE_BASE -> 0xFFE8F5E9.toInt() // Light green
+                        ReplySource.AI_AGENT -> 0xFFE3F2FD.toInt()      // Light blue
+                        ReplySource.HYBRID -> 0xFFF3E5F5.toInt()         // Light purple
+                        else -> 0xFFFFFFFF.toInt()
+                    }
+                    setBackgroundColor(bgColor)
                     setTextColor(0xFF333333.toInt())
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -643,8 +846,10 @@ class QuickSpeechInputMethodService : InputMethodService() {
                         ic.deleteSurroundingText(currentInputText.length, 0)
                         ic.commitText(reply.text, 1)
                         currentInputText = reply.text
+                        // Record positive feedback for adopted reply
+                        aiRepository.recordReplyPreference(reply.text, true)
                     }
-                    // Long press: show context menu (copy / favorite)
+                    // Long press: show context menu (copy / thumbs down)
                     setOnLongClickListener {
                         showReplyContextMenu(reply.text, this@apply)
                         true
@@ -658,12 +863,12 @@ class QuickSpeechInputMethodService : InputMethodService() {
     }
 
     /**
-     * 显示回复卡片长按菜单
+     * Show reply card long-press context menu
      */
     private fun showReplyContextMenu(text: String, anchor: View) {
         val popup = android.widget.PopupMenu(this, anchor)
         popup.menu.add(0, 1, 0, "复制")
-        popup.menu.add(0, 2, 1, "收藏")
+        popup.menu.add(0, 2, 1, "不喜欢")
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 1 -> {
@@ -673,13 +878,37 @@ class QuickSpeechInputMethodService : InputMethodService() {
                     true
                 }
                 2 -> {
-                    Toast.makeText(this, "已收藏", Toast.LENGTH_SHORT).show()
+                    aiRepository.recordReplyPreference(text, false)
+                    Toast.makeText(this, "已记录反馈", Toast.LENGTH_SHORT).show()
                     true
                 }
                 else -> false
             }
         }
         popup.show()
+    }
+
+    // ===== Rule management hint =====
+    private fun showRuleManagementHint() {
+        scope.launch {
+            try {
+                val ruleCount = userRuleEngine.getRuleCount()
+                val message = if (ruleCount == 0) {
+                    "💡 Tip: Create custom rules for quick text expansion\n\n" +
+                    "• Example: Type \"addr\" to insert your address\n" +
+                    "• Example: Type \"sig1\" to insert email signature\n" +
+                    "• Long-press voice key to manage rules"
+                } else {
+                    "💡 You have $ruleCount custom rule${if (ruleCount != 1) "s" else ""}. \n" +
+                    "Long-press voice key to view/edit rules."
+                }
+                runOnUiThread {
+                    Toast.makeText(this@QuickSpeechInputMethodService, message, Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error showing rule hint", e)
+            }
+        }
     }
 
     // ===== Knowledge base search =====

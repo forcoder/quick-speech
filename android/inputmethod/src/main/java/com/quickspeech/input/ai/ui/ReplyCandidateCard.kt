@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ThumbDown
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.*
@@ -32,14 +33,37 @@ fun ReplyCandidateCard(
     var thumbsUpSelected by remember { mutableStateOf(false) }
     var thumbsDownSelected by remember { mutableStateOf(false) }
 
+    // Different background for AI-generated vs knowledge base vs hybrid
+    val cardContainerColor = when (reply.source) {
+        ReplySource.KNOWLEDGE_BASE -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+        ReplySource.AI_AGENT -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+        ReplySource.HYBRID -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    }
+
+    val sourceTagColor = when (reply.source) {
+        ReplySource.KNOWLEDGE_BASE -> MaterialTheme.colorScheme.tertiaryContainer
+        ReplySource.AI_AGENT -> MaterialTheme.colorScheme.secondaryContainer
+        ReplySource.HYBRID -> MaterialTheme.colorScheme.primaryContainer
+    }
+
+    val sourceTagTextColor = when (reply.source) {
+        ReplySource.KNOWLEDGE_BASE -> MaterialTheme.colorScheme.onTertiaryContainer
+        ReplySource.AI_AGENT -> MaterialTheme.colorScheme.onSecondaryContainer
+        ReplySource.HYBRID -> MaterialTheme.colorScheme.onPrimaryContainer
+    }
+
+    val sourceLabel = when (reply.source) {
+        ReplySource.KNOWLEDGE_BASE -> "知识库"
+        ReplySource.AI_AGENT -> "AI智能体"
+        ReplySource.HYBRID -> "混合"
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onAdopt),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ),
+        colors = CardDefaults.cardColors(containerColor = cardContainerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
@@ -47,40 +71,27 @@ fun ReplyCandidateCard(
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
+            // Source tag and confidence row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
                     shape = RoundedCornerShape(4.dp),
-                    color = when (reply.source) {
-                        ReplySource.KNOWLEDGE_BASE -> MaterialTheme.colorScheme.tertiaryContainer
-                        ReplySource.AI_AGENT -> MaterialTheme.colorScheme.secondaryContainer
-                        ReplySource.HYBRID -> MaterialTheme.colorScheme.primaryContainer
-                    }
+                    color = sourceTagColor
                 ) {
                     Text(
-                        text = "${reply.source.emoji} ${reply.source.name.let {
-                            when(it) {
-                                "KNOWLEDGE_BASE" -> "知识库"
-                                "AI_AGENT" -> "AI智能体"
-                                "HYBRID" -> "混合"
-                                else -> it
-                            }
-                        }}",
+                        text = "${reply.source.emoji} $sourceLabel",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        color = when (reply.source) {
-                            ReplySource.KNOWLEDGE_BASE -> MaterialTheme.colorScheme.onTertiaryContainer
-                            ReplySource.AI_AGENT -> MaterialTheme.colorScheme.onSecondaryContainer
-                            ReplySource.HYBRID -> MaterialTheme.colorScheme.onPrimaryContainer
-                        }
+                        color = sourceTagTextColor
                     )
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
 
+                // Confidence indicator
                 Text(
                     text = "${(reply.confidence * 100).toInt()}%",
                     fontSize = 10.sp,
@@ -90,6 +101,7 @@ fun ReplyCandidateCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Reply text
             Text(
                 text = reply.text,
                 fontSize = 14.sp,
@@ -101,6 +113,7 @@ fun ReplyCandidateCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Feedback buttons row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,

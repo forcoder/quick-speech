@@ -115,6 +115,32 @@
                 android:fontFamily="sans-serif" />
 
             <TextView
+                android:id="@+id/btn_ai_style"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="😊随意"
+                android:textSize="9sp"
+                android:textColor="#FF9800"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="sans-serif" />
+
+            <TextView
+                android:id="@+id/btn_ai_refresh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔄"
+                android:textSize="9sp"
+                android:textColor="#4CAF50"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="sans-serif" />
+
+            <TextView
                 android:id="@+id/btn_ai_collapse"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
