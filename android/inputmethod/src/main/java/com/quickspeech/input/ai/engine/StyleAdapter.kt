@@ -118,7 +118,7 @@ class StyleAdapter @Inject constructor() {
     private fun makeCasual(text: String): String {
         var result = text
         // Replace formal expressions with casual ones
-        val formalToCasual = mapOf(
+        val formalToCasual = listOf(
             "已收到" to "收到啦",
             "感谢" to "谢谢",
             "已了解" to "明白",
@@ -127,7 +127,7 @@ class StyleAdapter @Inject constructor() {
             "此致敬礼" to "谢谢",
             "敬请" to "请",
             "贵" to "您的",
-            "谨此" -> "这里",
+            "谨此" to "这里",
             "顺颂" to "",
             "为盼" to "",
             "台鉴" to "",

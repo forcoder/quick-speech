@@ -2,6 +2,7 @@ package com.quickspeech.input.ai.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -396,6 +397,7 @@ private fun StatChip(label: String, color: Color) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CommonPhrasesCard(phrases: List<String>) {
     Card(modifier = Modifier.fillMaxWidth()) {

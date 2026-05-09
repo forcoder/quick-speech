@@ -287,7 +287,8 @@ class StyleAnalyzer @Inject constructor(
                 for (i in 0..(text.length - len)) {
                     val phrase = text.substring(i, i + len)
                     // Skip phrases that are mostly punctuation
-                    val punctCount = phrase.count { "，。！？、；：""''（）【】《》 \n\t".contains(it) }
+                    val punctuations = "，。！？、；：" + "“" + "”" + "‘" + "’" + "（）【】《》" + " \n\t"
+                        val punctCount = phrase.count { punctuations.contains(it) }
                     if (punctCount > phrase.length / 2) continue
                     phraseCount[phrase] = (phraseCount[phrase] ?: 0) + 1
                 }

@@ -295,7 +295,7 @@ class ReplyContextAnalyzer {
             "这", "那", "我", "你", "他", "她", "它", "们",
             "个", "些", "什么", "怎么", "如何", "可以", "能",
             "不", "没", "很", "非常", "太", "比较", "更", "最")
-        return !stopWords.contains(phrase) && !phrase.all { it.isWhitespace() || "，。！？、；：""''（）【】《》".contains(it) }
+        return !stopWords.contains(phrase) && !phrase.all { it.isWhitespace() || "，。！？、；：\"\"''（）【】《》".contains(it) }
     }
 
     private fun calculateAnalysisConfidence(text: String, intent: Intent, sentiment: Sentiment): Float {

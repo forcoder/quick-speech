@@ -634,7 +634,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.MATCH_PARENT
-                ).apply { marginEnd = 4; topMargin = 4; bottomMargin: 4 }
+                ).apply { marginEnd = 4; topMargin = 4; bottomMargin = 4 }
                 setOnClickListener {
                     val match = UserRuleMatch(
                         ruleId = rule.id,
