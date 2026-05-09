@@ -985,8 +985,10 @@ class QuickSpeechInputMethodService : InputMethodService() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        // Clear pending AI replies and cancel scope BEFORE calling super
+        pendingReplies = emptyList()
         scope.cancel()
-        Log.e(TAG, "onDestroy")
+        Log.d(TAG, "onDestroy - cleaned up resources")
+        super.onDestroy()
     }
 }
