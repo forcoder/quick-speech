@@ -620,10 +620,10 @@ class QuickSpeechInputMethodService : InputMethodService() {
             container?.addView(hintTv)
         }
 
-        // Show Wubi candidates
-        for ((index, candidate) in state.candidates.take(10).withIndex()) {
+        // Show Wubi candidates (increase to 7)
+        for ((index, candidate) in state.candidates.take(7).withIndex()) {
             val tv = TextView(this).apply {
-                text = if (index < 9) "${index + 1}.$candidate" else candidate
+                text = if (index < 6) "${index + 1}.$candidate" else candidate
                 textSize = 14f
                 setPadding(14, 6, 14, 6)
                 setTextColor(0xFF333333.toInt())
