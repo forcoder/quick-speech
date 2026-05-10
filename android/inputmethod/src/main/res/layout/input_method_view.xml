@@ -5,6 +5,63 @@
     android:orientation="vertical"
     android:background="#E8E8E8">
 
+    <!-- 工具栏：中英切换 | 语音 | AI | 知识库 | 设置 -->
+    <LinearLayout
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:background="#EEEEEE">
+
+        <TextView
+            android:id="@+id/key_toggle_lang"
+            style="@style/WubiKey.Func"
+            android:layout_width="0dp"
+            android:layout_weight="1.3"
+            android:text="中"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif" />
+
+        <TextView
+            android:id="@+id/key_voice"
+            style="@style/WubiKey.Func"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="🎤"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif" />
+
+        <TextView
+            android:id="@+id/key_ai_toggle"
+            style="@style/WubiKey.Func"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="AI"
+            android:textSize="10sp"
+            android:fontFamily="sans-serif" />
+
+        <TextView
+            android:id="@+id/btn_knowledge_search"
+            style="@style/WubiKey.Func"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="📚"
+            android:textSize="10sp"
+            android:fontFamily="sans-serif" />
+
+        <TextView
+            android:id="@+id/placeholder_settings"
+            style="@style/WubiKey.Func"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="⚙️"
+            android:textSize="10sp"
+            android:fontFamily="sans-serif" />
+    </LinearLayout>
+
     <!-- 候选词栏 -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -87,19 +144,6 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/btn_knowledge_search"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📚知识库"
-                android:textSize="9sp"
-                android:textColor="#1976D2"
-                android:paddingStart="6dp"
-                android:paddingEnd="6dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:fontFamily="sans-serif" />
 
             <TextView
                 android:id="@+id/btn_ai_mode"
@@ -195,7 +239,6 @@
                 android:orientation="vertical" />
 
         </LinearLayout>
-
     </LinearLayout>
 
     <!-- ===== 键盘主体 ===== -->
@@ -209,35 +252,7 @@
         android:paddingTop="4dp"
         android:paddingBottom="6dp">
 
-        <!-- 第1行：1 2 3 4 5 6 7 8 9 0 + 删除 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView android:id="@+id/key_1" style="@style/WubiKey" android:text="1" />
-            <TextView android:id="@+id/key_2" style="@style/WubiKey" android:text="2" />
-            <TextView android:id="@+id/key_3" style="@style/WubiKey" android:text="3" />
-            <TextView android:id="@+id/key_4" style="@style/WubiKey" android:text="4" />
-            <TextView android:id="@+id/key_5" style="@style/WubiKey" android:text="5" />
-            <TextView android:id="@+id/key_6" style="@style/WubiKey" android:text="6" />
-            <TextView android:id="@+id/key_7" style="@style/WubiKey" android:text="7" />
-            <TextView android:id="@+id/key_8" style="@style/WubiKey" android:text="8" />
-            <TextView android:id="@+id/key_9" style="@style/WubiKey" android:text="9" />
-            <TextView android:id="@+id/key_0" style="@style/WubiKey" android:text="0" />
-
-            <TextView
-                android:id="@+id/key_backspace"
-                style="@style/WubiKey.Func"
-                android:layout_width="0dp"
-                android:layout_weight="1.5"
-                android:text="⌫"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif" />
-
-        </LinearLayout>
-
-        <!-- 第2行：Q W E R T Y U I O P -->
+        <!-- 第1行：Q W E R T Y U I O P -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -253,10 +268,9 @@
             <TextView android:id="@+id/key_i" style="@style/WubiKey" android:text="I" />
             <TextView android:id="@+id/key_o" style="@style/WubiKey" android:text="O" />
             <TextView android:id="@+id/key_p" style="@style/WubiKey" android:text="P" />
-
         </LinearLayout>
 
-        <!-- 第3行：Shift + A S D F G H J K L + 回车 -->
+        <!-- 第2行：Shift + A S D F G H J K L + 回车 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -289,10 +303,9 @@
                 android:text="↵"
                 android:textSize="15sp"
                 android:fontFamily="sans-serif" />
-
         </LinearLayout>
 
-        <!-- 第4行：符号 + Z X C V B N M + ， 。 -->
+        <!-- 第3行：123 + Z X C V B N M + 删除 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -303,7 +316,7 @@
                 style="@style/WubiKey.Func"
                 android:layout_width="0dp"
                 android:layout_weight="1.3"
-                android:text="符"
+                android:text="123"
                 android:textSize="11sp"
                 android:fontFamily="sans-serif" />
 
@@ -314,6 +327,23 @@
             <TextView android:id="@+id/key_b" style="@style/WubiKey" android:text="B" />
             <TextView android:id="@+id/key_n" style="@style/WubiKey" android:text="N" />
             <TextView android:id="@+id/key_m" style="@style/WubiKey" android:text="M" />
+
+            <TextView
+                android:id="@+id/key_backspace"
+                style="@style/WubiKey.Func"
+                android:layout_width="0dp"
+                android:layout_weight="1.5"
+                android:text="⌫"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif" />
+        </LinearLayout>
+
+        <!-- 第4行：功能键：符号，空格，句号，回车 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="1dp">
 
             <TextView
                 style="@style/WubiKey"
@@ -327,44 +357,6 @@
                 android:fontFamily="sans-serif" />
 
             <TextView
-                style="@style/WubiKey"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:text="。"
-                android:textSize="15sp"
-                android:clickable="true"
-                android:focusable="true"
-                android:tag="period"
-                android:fontFamily="sans-serif" />
-
-        </LinearLayout>
-
-        <!-- 第5行：中英 + 语音 + 空格 + AI -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="1dp">
-
-            <TextView
-                android:id="@+id/key_toggle_lang"
-                style="@style/WubiKey.Func"
-                android:layout_width="0dp"
-                android:layout_weight="1.3"
-                android:text="中"
-                android:textSize="12sp"
-                android:fontFamily="sans-serif" />
-
-            <TextView
-                android:id="@+id/key_voice"
-                style="@style/WubiKey.Func"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:text="🎤"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif" />
-
-            <TextView
                 style="@style/WubiKey.Space"
                 android:layout_width="0dp"
                 android:layout_weight="5"
@@ -375,16 +367,24 @@
                 android:fontFamily="sans-serif" />
 
             <TextView
-                android:id="@+id/key_ai_toggle"
-                style="@style/WubiKey.Func"
+                style="@style/WubiKey"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:text="AI"
-                android:textSize="10sp"
+                android:text="。"
+                android:textSize="15sp"
+                android:clickable="true"
+                android:focusable="true"
+                android:tag="period"
                 android:fontFamily="sans-serif" />
 
+            <TextView
+                style="@style/WubiKey.Enter"
+                android:layout_width="0dp"
+                android:layout_weight="1.5"
+                android:text="↵"
+                android:tag="s_enter"
+                android:fontFamily="sans-serif" />
         </LinearLayout>
-
     </LinearLayout>
 
     <!-- ===== 符号键盘（默认隐藏） ===== -->
@@ -474,7 +474,7 @@
 
         </LinearLayout>
 
-        <!-- 符号第5行：返回 + 空格 + 回车 -->
+        <!-- 符号第5行：返回 + 空格 + 句号 + 回车 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -529,7 +529,5 @@
                 android:fontFamily="sans-serif" />
 
         </LinearLayout>
-
     </LinearLayout>
-
 </LinearLayout>

@@ -93,17 +93,8 @@ class QuickSpeechInputMethodService : InputMethodService() {
             }
         }
 
-        // ===== Number keys =====
-        val numKeyIds = listOf(
-            R.id.key_1, R.id.key_2, R.id.key_3, R.id.key_4, R.id.key_5,
-            R.id.key_6, R.id.key_7, R.id.key_8, R.id.key_9, R.id.key_0
-        )
-        for (keyId in numKeyIds) {
-            view.findViewById<TextView>(keyId)?.setOnClickListener { v ->
-                val num = (v as TextView).text.toString()
-                handleNumberKey(num)
-            }
-        }
+        // ===== Number key handling moved to symbol keyboard =====
+        // Numbers are now handled in setupSymbolKeys(view)
 
         // ===== Shift (case toggle) =====
         view.findViewById<TextView>(R.id.key_shift)?.setOnClickListener {
@@ -145,7 +136,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
             handleEnterKey()
         }
 
-        // ===== Symbol toggle =====
+        // ===== Symbol toggle (123 mode) =====
         view.findViewById<TextView>(R.id.key_symbol)?.setOnClickListener {
             toggleSymbolMode(view)
         }
@@ -380,7 +371,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
         }
 
         // Bind Wubi radicals to letter keys
-        com.quickspeech.input.ui.WubiKeyBinder.bindAllKeys(view)
+        // com.quickspeech.input.ui.WubiKeyBinder.bindAllKeys(view) // Disabled: no radicals on letter keys
 
         // ===== Keyboard height proportional to screen width =====
         val displayMetrics = resources.displayMetrics
@@ -429,33 +420,8 @@ class QuickSpeechInputMethodService : InputMethodService() {
         }
     }
 
-    // ===== Number key handling =====
-    private fun handleNumberKey(num: String) {
-        val ic = currentInputConnection ?: return
-        if (isSymbolMode) {
-            // Symbol mode: map numbers to symbols
-            val symbols = listOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
-            val idx = num.toIntOrNull() ?: return
-            if (idx in 0..9) {
-                ic.commitText(symbols[idx], 1)
-                currentInputText += symbols[idx]
-            }
-        } else if (!isEnglishMode && !isSymbolMode && viewModel.uiState.value.candidates.isNotEmpty()) {
-            // Wubi mode: select candidate by number
-            val idx = num.toIntOrNull() ?: return
-            val candidates = viewModel.uiState.value.candidates
-            if (idx >= 1 && idx <= candidates.size) {
-                val candidate = candidates[idx - 1]
-                viewModel.onCandidateSelected(candidate)
-                ic.commitText(candidate, 1)
-                currentInputText += candidate
-                inputView?.let { updateCandidates(it); triggerAiSuggestions() }
-            }
-        } else {
-            ic.commitText(num, 1)
-            currentInputText += num
-        }
-    }
+    // ===== Number key handling moved to symbol keyboard =====
+        // Numbers are now handled in setupSymbolKeys(view)
 
     // ===== Enter key handling =====
     private fun handleEnterKey() {
@@ -734,8 +700,6 @@ class QuickSpeechInputMethodService : InputMethodService() {
             R.id.key_h, R.id.key_j, R.id.key_k, R.id.key_l,
             R.id.key_z, R.id.key_x, R.id.key_c, R.id.key_v, R.id.key_b,
             R.id.key_n, R.id.key_m,
-            R.id.key_1, R.id.key_2, R.id.key_3, R.id.key_4, R.id.key_5,
-            R.id.key_6, R.id.key_7, R.id.key_8, R.id.key_9, R.id.key_0,
             R.id.key_shift, R.id.key_enter, R.id.key_symbol, R.id.key_backspace,
             R.id.key_toggle_lang, R.id.key_voice, R.id.key_ai_toggle
         )
