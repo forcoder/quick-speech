@@ -420,9 +420,6 @@ class QuickSpeechInputMethodService : InputMethodService() {
         }
     }
 
-    // ===== Number key handling moved to symbol keyboard =====
-        // Numbers are now handled in setupSymbolKeys(view)
-
     // ===== Enter key handling =====
     private fun handleEnterKey() {
         val ic = currentInputConnection ?: return
