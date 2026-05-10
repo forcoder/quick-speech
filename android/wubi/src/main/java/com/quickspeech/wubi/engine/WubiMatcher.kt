@@ -86,6 +86,15 @@ class WubiMatcher(private val dao: WubiDao) {
     suspend fun smartMatch(code: String, limit: Int = 20): MatchResult = withContext(Dispatchers.IO) {
         val lowerCode = code.lowercase()
 
+        // 特殊处理：四码唯一自动上屏
+        if (lowerCode.length == 4) {
+            val exactResults = try { dao.exactMatch(lowerCode) } catch (e: Exception) { emptyList() }
+            if (exactResults.size == 1) {
+                // 四码唯一，直接返回该候选（自动上屏）
+                return@withContext MatchResult(lowerCode, exactResults, MatchType.EXACT)
+            }
+        }
+
         // 第一优先级：精确匹配
         val exactResults = try { dao.exactMatch(lowerCode) } catch (e: Exception) { emptyList() }
         if (exactResults.isNotEmpty()) {
