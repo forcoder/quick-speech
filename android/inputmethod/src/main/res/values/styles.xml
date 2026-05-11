@@ -8,8 +8,8 @@
         <item name="android:layout_weight">1</item>
         <item name="android:layout_margin">1.5dp</item>
         <item name="android:background">@drawable/btn_key_bg</item>
-        <item name="android:textSize">16sp</item>
-        <item name="android:textColor">#222222</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">#333333</item>
         <item name="android:textStyle">bold</item>
         <item name="android:gravity">center</item>
         <item name="android:minWidth">0dp</item>
@@ -18,7 +18,8 @@
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
         <item name="android:fontFamily">sans-serif</item>
-        <item name="android:elevation">1dp</item>
+        <item name="android:elevation">2dp</item>
+        <item name="android:stateListAnimator">@null</item>
     </style>
 
     <!-- 功能键样式 -->
@@ -29,7 +30,7 @@
         <item name="android:layout_margin">1.5dp</item>
         <item name="android:background">@drawable/btn_func_key_bg</item>
         <item name="android:textSize">11sp</item>
-        <item name="android:textColor">#666666</item>
+        <item name="android:textColor">#555555</item>
         <item name="android:textStyle">normal</item>
         <item name="android:gravity">center</item>
         <item name="android:minWidth">0dp</item>
@@ -38,6 +39,7 @@
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
         <item name="android:fontFamily">sans-serif</item>
+        <item name="android:stateListAnimator">@null</item>
     </style>
 
     <!-- 空格键样式 -->
@@ -57,6 +59,7 @@
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
         <item name="android:fontFamily">sans-serif</item>
+        <item name="android:stateListAnimator">@null</item>
     </style>
 
     <!-- 回车键样式 -->
@@ -66,7 +69,7 @@
         <item name="android:layout_weight">1.5</item>
         <item name="android:layout_margin">1.5dp</item>
         <item name="android:background">@drawable/btn_enter_key_bg</item>
-        <item name="android:textSize">13sp</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textStyle">normal</item>
         <item name="android:gravity">center</item>
@@ -76,6 +79,7 @@
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
         <item name="android:fontFamily">sans-serif</item>
+        <item name="android:stateListAnimator">@null</item>
     </style>
 
     <!-- Shift 激活样式 -->
@@ -95,6 +99,7 @@
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
         <item name="android:fontFamily">sans-serif</item>
+        <item name="android:stateListAnimator">@null</item>
     </style>
 
     <!-- 候选词样式 -->
@@ -106,6 +111,21 @@
         <item name="android:textColor">#333333</item>
         <item name="android:background">@drawable/btn_candidate_bg</item>
         <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <!-- 工具栏按键样式 -->
+    <style name="WubiKey.Toolbar">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_margin">2dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">#666666</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:stateListAnimator">@null</item>
     </style>
 
 </resources>

@@ -187,11 +187,11 @@ class QuickSpeechInputMethodService : InputMethodService() {
             view.findViewById<TextView>(R.id.key_toggle_lang)?.apply {
                 if (isEnglishMode) {
                     text = "英"
-                    setBackgroundColor(0xFF1976D2.toInt())
+                    setBackgroundColor(0xFF1E88E5.toInt())
                     setTextColor(0xFFFFFFFF.toInt())
                 } else {
                     text = "中"
-                    setBackgroundColor(0xFFD0D0D0.toInt())
+                    setBackgroundColor(0xFFFFFFFF.toInt())
                     setTextColor(0xFF555555.toInt())
                 }
             }
@@ -472,13 +472,13 @@ class QuickSpeechInputMethodService : InputMethodService() {
             mainKeyboard?.visibility = View.GONE
             symbolKeyboard?.visibility = View.VISIBLE
             symbolKey?.text = "ABC"
-            symbolKey?.setBackgroundColor(0xFF1976D2.toInt())
+            symbolKey?.setBackgroundColor(0xFF1E88E5.toInt())
             symbolKey?.setTextColor(0xFFFFFFFF.toInt())
         } else {
             mainKeyboard?.visibility = View.VISIBLE
             symbolKeyboard?.visibility = View.GONE
             symbolKey?.text = "符"
-            symbolKey?.setBackgroundColor(0xFFD0D0D0.toInt())
+            symbolKey?.setBackgroundColor(0xFFB0B2B8.toInt())
             symbolKey?.setTextColor(0xFF555555.toInt())
         }
     }
@@ -563,14 +563,14 @@ class QuickSpeechInputMethodService : InputMethodService() {
         if (ruleMatch != null && ruleMatch.expansion.isNotEmpty()) {
             val ruleTv = TextView(this).apply {
                 text = "📋 ${ruleMatch.expansion}"
-                textSize = 14f
-                setPadding(14, 6, 14, 6)
+                textSize = 15f
+                setPadding(16, 8, 16, 8)
                 setTextColor(0xFF1565C0.toInt())
                 setBackgroundColor(0xFFE3F2FD.toInt())
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.MATCH_PARENT
-                ).apply { marginEnd = 4; topMargin = 4; bottomMargin = 4 }
+                ).apply { marginEnd = 6; topMargin = 5; bottomMargin = 5 }
                 setOnClickListener {
                     viewModel.onUserRuleSelected(ruleMatch)
                     val ic = currentInputConnection ?: return@setOnClickListener
@@ -587,14 +587,14 @@ class QuickSpeechInputMethodService : InputMethodService() {
         for (rule in state.userRulePrefixMatches.take(3)) {
             val hintTv = TextView(this).apply {
                 text = "📋 ${rule.shortcut}"
-                textSize = 12f
-                setPadding(10, 6, 10, 6)
+                textSize = 13f
+                setPadding(12, 8, 12, 8)
                 setTextColor(0xFF7B1FA2.toInt())
                 setBackgroundColor(0xFFF3E5F5.toInt())
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.MATCH_PARENT
-                ).apply { marginEnd = 4; topMargin = 4; bottomMargin = 4 }
+                ).apply { marginEnd = 6; topMargin = 5; bottomMargin = 5 }
                 setOnClickListener {
                     val match = UserRuleMatch(
                         ruleId = rule.id,
@@ -614,17 +614,34 @@ class QuickSpeechInputMethodService : InputMethodService() {
             container?.addView(hintTv)
         }
 
-        // Show Wubi candidates (increase to 7)
+        // Show Wubi candidates (up to 7, card style)
         for ((index, candidate) in state.candidates.take(7).withIndex()) {
+            val isFirst = index == 0
             val tv = TextView(this).apply {
                 text = if (index < 6) "${index + 1}.$candidate" else candidate
-                textSize = 14f
-                setPadding(14, 6, 14, 6)
-                setTextColor(0xFF333333.toInt())
+                textSize = if (isFirst) 16f else 15f
+                setPadding(
+                    if (isFirst) 18 else 14,
+                    8,
+                    if (isFirst) 18 else 14,
+                    8
+                )
+                setTextColor(
+                    if (isFirst) 0xFF1E88E5.toInt() else 0xFF333333.toInt()
+                )
+                if (isFirst) {
+                    setBackgroundColor(0xFFE3F2FD.toInt())
+                } else {
+                    setBackgroundColor(0xFFFFFFFF.toInt())
+                }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.MATCH_PARENT
-                ).apply { marginEnd = 4; topMargin = 4; bottomMargin = 4 }
+                ).apply {
+                    marginEnd = 6
+                    topMargin = 5
+                    bottomMargin = 5
+                }
                 setOnClickListener {
                     viewModel.onCandidateSelected(candidate)
                     val ic = currentInputConnection ?: return@setOnClickListener
@@ -641,14 +658,14 @@ class QuickSpeechInputMethodService : InputMethodService() {
         if (state.associatedWords.isNotEmpty() && showAssociatedWords) {
             // Add separator
             val separator = TextView(this).apply {
-                text = " | "
+                text = " │ "
                 textSize = 14f
-                setPadding(8, 6, 8, 6)
-                setTextColor(0xFF999999.toInt())
+                setPadding(6, 6, 6, 6)
+                setTextColor(0xFFBBBBBB.toInt())
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.MATCH_PARENT
-                ).apply { topMargin = 4; bottomMargin = 4 }
+                ).apply { topMargin = 5; bottomMargin = 5 }
             }
             container?.addView(separator)
 
@@ -656,12 +673,13 @@ class QuickSpeechInputMethodService : InputMethodService() {
                 val tv = TextView(this).apply {
                     text = word
                     textSize = 14f
-                    setPadding(14, 6, 14, 6)
-                    setTextColor(0xFF1976D2.toInt())
+                    setPadding(14, 8, 14, 8)
+                    setTextColor(0xFF1E88E5.toInt())
+                    setBackgroundColor(0xFFF5F5F5.toInt())
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.MATCH_PARENT
-                    ).apply { marginEnd = 4; topMargin = 4; bottomMargin = 4 }
+                    ).apply { marginEnd = 6; topMargin = 5; bottomMargin = 5 }
                     setOnClickListener {
                         viewModel.onAssociatedWordSelected(word)
                         val ic = currentInputConnection ?: return@setOnClickListener
