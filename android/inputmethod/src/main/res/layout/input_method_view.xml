@@ -338,7 +338,7 @@
                 android:fontFamily="sans-serif" />
         </LinearLayout>
 
-        <!-- 第4行：功能键：符号，空格，句号，回车 -->
+        <!-- 第4行：功能键：逗号，空格，句号 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -348,7 +348,7 @@
             <TextView
                 style="@style/WubiKey"
                 android:layout_width="0dp"
-                android:layout_weight="1"
+                android:layout_weight="1.5"
                 android:text="，"
                 android:textSize="15sp"
                 android:clickable="true"
@@ -369,20 +369,12 @@
             <TextView
                 style="@style/WubiKey"
                 android:layout_width="0dp"
-                android:layout_weight="1"
+                android:layout_weight="1.5"
                 android:text="。"
                 android:textSize="15sp"
                 android:clickable="true"
                 android:focusable="true"
                 android:tag="period"
-                android:fontFamily="sans-serif" />
-
-            <TextView
-                style="@style/WubiKey.Enter"
-                android:layout_width="0dp"
-                android:layout_weight="1.5"
-                android:text="↵"
-                android:tag="s_enter"
                 android:fontFamily="sans-serif" />
         </LinearLayout>
     </LinearLayout>
