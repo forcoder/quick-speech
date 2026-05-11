@@ -2,17 +2,15 @@ package com.quickspeech.input.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.quickspeech.wubi.data.UserRuleEntity
 import com.quickspeech.wubi.engine.EngineResult
 import com.quickspeech.wubi.engine.UserRuleEngine
 import com.quickspeech.wubi.engine.WubiInputEngine
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 data class InputMethodUiState(
@@ -53,36 +51,34 @@ class InputMethodViewModel(
     private val userRuleEngine: UserRuleEngine
 ) : ViewModel() {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
     private val _uiState = MutableStateFlow(InputMethodUiState())
-    val uiState: StateFlow<InputMethodUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<InputMethodUiState> = _uiState
 
     init {
         Log.e("QuickSpeech", "InputMethodViewModel created")
-        scope.launch {
+        viewModelScope.launch {
             try { wubiInputEngine.refreshUserData() } catch (e: Throwable) { Log.e("QuickSpeech", "refresh failed", e) }
         }
-        scope.launch {
-            wubiInputEngine.candidates.collect { ranked ->
+        viewModelScope.launch {
+            wubiInputEngine.candidates.collectLatest { ranked ->
                 _uiState.value = _uiState.value.copy(candidates = ranked.map { rc -> rc.entry.word })
             }
         }
-        scope.launch {
-            wubiInputEngine.composingCode.collect { code ->
+        viewModelScope.launch {
+            wubiInputEngine.composingCode.collectLatest { code ->
                 _uiState.value = _uiState.value.copy(inputCode = code)
                 if (code.isNotEmpty()) checkUserRules(code) else clearUserRuleMatches()
             }
         }
-        scope.launch {
-            wubiInputEngine.associatedWords.collect { words ->
+        viewModelScope.launch {
+            wubiInputEngine.associatedWords.collectLatest { words ->
                 _uiState.value = _uiState.value.copy(associatedWords = words.map { it.word })
             }
         }
     }
 
     private fun checkUserRules(input: String) {
-        scope.launch {
+        viewModelScope.launch {
             try {
                 val exact = userRuleEngine.matchRule(input)
                 if (exact != null) {
@@ -102,31 +98,34 @@ class InputMethodViewModel(
     }
 
     fun onUserRuleSelected(match: UserRuleMatch) {
-        scope.launch { try { userRuleEngine.recordUsage(match.ruleId) } catch (e: Throwable) {} }
+        viewModelScope.launch { try { userRuleEngine.recordUsage(match.ruleId) } catch (e: Throwable) {} }
         wubiInputEngine.reset()
-        _uiState.value = _uiState.value.copy(inputCode = "", candidates = emptyList(), associatedWords = emptyList(), userRuleMatch = null, userRulePrefixMatches = emptyList())
+        _uiState.value = _uiState.value.copy(
+            inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
+            userRuleMatch = null, userRulePrefixMatches = emptyList()
+        )
     }
 
     fun onKeyInput(key: String) {
-        scope.launch { try { handleEngineResult(wubiInputEngine.processKey(key[0])) } catch (e: Throwable) { Log.e("QuickSpeech", "key error", e) } }
+        if (key.isEmpty()) return
+        viewModelScope.launch { try { handleEngineResult(wubiInputEngine.processKey(key[0])) } catch (e: Throwable) { Log.e("QuickSpeech", "key error", e) } }
     }
 
     fun onDelete() {
-        scope.launch { try { handleEngineResult(wubiInputEngine.processKey('\b')) } catch (e: Throwable) { Log.e("QuickSpeech", "del error", e) } }
+        viewModelScope.launch { try { handleEngineResult(wubiInputEngine.processKey('\b')) } catch (e: Throwable) { Log.e("QuickSpeech", "del error", e) } }
     }
 
     fun onCandidateSelected(candidate: String) {
-        scope.launch {
+        viewModelScope.launch {
             try {
                 val idx = _uiState.value.candidates.indexOf(candidate)
                 if (idx in 0..8) handleEngineResult(wubiInputEngine.processKey('1' + idx))
             } catch (e: Throwable) { Log.e("QuickSpeech", "sel error", e) }
         }
-        _uiState.value = _uiState.value.copy(inputCode = "", candidates = emptyList())
     }
 
     fun onAssociatedWordSelected(word: String) {
-        scope.launch { try { wubiInputEngine.selectAssociatedWord(word) } catch (e: Throwable) {} }
+        viewModelScope.launch { try { wubiInputEngine.selectAssociatedWord(word) } catch (e: Throwable) {} }
     }
 
     fun onAiReplySelected(reply: AiReplyUiItem) { _uiState.value = _uiState.value.copy(aiReplies = emptyList(), isAiPanelVisible = false) }
@@ -135,20 +134,38 @@ class InputMethodViewModel(
     fun onInputStarted() {}
 
     fun onInputFinished() {
-        _uiState.value = _uiState.value.copy(inputCode = "", candidates = emptyList(), associatedWords = emptyList(), aiReplies = emptyList(), isAiPanelVisible = false, userRuleMatch = null, userRulePrefixMatches = emptyList())
+        _uiState.value = _uiState.value.copy(
+            inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
+            aiReplies = emptyList(), isAiPanelVisible = false,
+            userRuleMatch = null, userRulePrefixMatches = emptyList()
+        )
         wubiInputEngine.reset()
+    }
+
+    fun clearCandidates() {
+        _uiState.value = _uiState.value.copy(inputCode = "", candidates = emptyList(), associatedWords = emptyList())
     }
 
     private fun handleEngineResult(result: EngineResult) {
         when (result) {
-            is EngineResult.Composing -> _uiState.value = _uiState.value.copy(inputCode = result.code, candidates = result.candidates.map { it.entry.word })
-            is EngineResult.TextSelected -> _uiState.value = _uiState.value.copy(inputCode = "", candidates = emptyList(), userRuleMatch = null, userRulePrefixMatches = emptyList())
-            is EngineResult.DirectOutput -> _uiState.value = _uiState.value.copy(inputCode = "", candidates = emptyList(), userRuleMatch = null, userRulePrefixMatches = emptyList())
+            is EngineResult.Composing -> _uiState.value = _uiState.value.copy(
+                inputCode = result.code,
+                candidates = result.candidates.map { it.entry.word }
+            )
+            is EngineResult.TextSelected -> _uiState.value = _uiState.value.copy(
+                inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
+                userRuleMatch = null, userRulePrefixMatches = emptyList()
+            )
+            is EngineResult.DirectOutput -> _uiState.value = _uiState.value.copy(
+                inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
+                userRuleMatch = null, userRulePrefixMatches = emptyList()
+            )
             is EngineResult.Backspace -> {}
-            is EngineResult.Cleared -> _uiState.value = _uiState.value.copy(inputCode = "", candidates = emptyList(), associatedWords = emptyList(), userRuleMatch = null, userRulePrefixMatches = emptyList())
+            is EngineResult.Cleared -> _uiState.value = _uiState.value.copy(
+                inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
+                userRuleMatch = null, userRulePrefixMatches = emptyList()
+            )
             is EngineResult.Ignored -> {}
         }
     }
-
-    override fun onCleared() { super.onCleared(); scope.cancel() }
 }

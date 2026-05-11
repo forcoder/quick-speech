@@ -118,7 +118,6 @@ class QuickSpeechInputMethodService : InputMethodService() {
             if (!isEnglishMode && !isSymbolMode && viewModel.uiState.value.inputCode.isNotEmpty()) {
                 viewModel.onDelete()
                 updateCandidates(view)
-                updateInputTextFromCandidates(view)
             } else {
                 val ic = currentInputConnection ?: return@setOnClickListener
                 ic.deleteSurroundingText(1, 0)
@@ -412,7 +411,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
             else -> {
                 // Wubi mode: send key to engine
                 viewModel.onKeyInput(key.lowercase())
-                inputView?.let { updateCandidates(it); updateInputTextFromCandidates(it) }
+                inputView?.let { updateCandidates(it) }
             }
         }
     }
@@ -474,6 +473,9 @@ class QuickSpeechInputMethodService : InputMethodService() {
             symbolKey?.text = "ABC"
             symbolKey?.setBackgroundColor(0xFF1E88E5.toInt())
             symbolKey?.setTextColor(0xFFFFFFFF.toInt())
+            // Clear Wubi state when entering symbol mode
+            viewModel.clearCandidates()
+            updateCandidates(view)
         } else {
             mainKeyboard?.visibility = View.VISIBLE
             symbolKeyboard?.visibility = View.GONE
@@ -694,13 +696,6 @@ class QuickSpeechInputMethodService : InputMethodService() {
         }
     }
 
-    private fun updateInputTextFromCandidates(view: View) {
-        val state = viewModel.uiState.value
-        if (state.candidates.isNotEmpty()) {
-            currentInputText = state.candidates.first()
-        }
-    }
-
     /**
      * Adjust all key heights proportionally
      */
@@ -780,6 +775,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
         }
     }
 
+    @Volatile
     private var pendingReplies: List<AiReply> = emptyList()
 
     private fun runOnUiThread(action: () -> Unit) {
