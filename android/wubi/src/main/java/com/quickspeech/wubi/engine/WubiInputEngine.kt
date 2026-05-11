@@ -59,6 +59,19 @@ class WubiInputEngine @Inject constructor(
             is InputResult.Composing -> {
                 _composingCode.value = result.code
                 val matchResult = matcher.smartMatch(result.code)
+
+                // Auto-commit: 4-char code with exactly one exact match
+                if (result.code.length == 4 && matchResult.candidates.size == 1 && matchResult.matchType == MatchType.EXACT) {
+                    val word = matchResult.candidates[0].word
+                    learner.recordSelection(word, result.code)
+                    _selectedText.value = word
+                    decoder.clear()
+                    _composingCode.value = ""
+                    _candidates.value = emptyList()
+                    _associatedWords.value = emptyList()
+                    return EngineResult.TextSelected(word)
+                }
+
                 val ranked = sorter.sort(matchResult.candidates, userFrequencies, recentWords, result.code)
                 _candidates.value = ranked
                 _associatedWords.value = emptyList()

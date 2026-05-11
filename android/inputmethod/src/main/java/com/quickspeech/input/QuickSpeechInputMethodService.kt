@@ -93,9 +93,6 @@ class QuickSpeechInputMethodService : InputMethodService() {
             }
         }
 
-        // ===== Number key handling moved to symbol keyboard =====
-        // Numbers are now handled in setupSymbolKeys(view)
-
         // ===== Shift (case toggle) =====
         view.findViewById<TextView>(R.id.key_shift)?.setOnClickListener {
             val now = System.currentTimeMillis()
