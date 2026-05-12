@@ -153,7 +153,7 @@ class WubiInputEngine @Inject constructor(
         return EngineResult.TextSelected(word)
     }
 
-    suspend fun selectAssociatedWord(word: String) {
+    suspend fun selectAssociatedWord(word: String) = engineMutex.withLock {
         val associated = _associatedWords.value
         val entry = associated.find { it.word == word }
         if (entry != null) {
@@ -161,7 +161,6 @@ class WubiInputEngine @Inject constructor(
             _selectedText.value = word
             _associatedWords.value = emptyList()
         } else {
-            // 联想词不在列表中时，仍记录选择并清空联想
             learner.recordSelection(word, "")
             _selectedText.value = word
             _associatedWords.value = emptyList()
@@ -177,7 +176,7 @@ class WubiInputEngine @Inject constructor(
         newMode
     }
 
-    fun getInputMode(): InputMode = decoder.inputMode
+    suspend fun getInputMode(): InputMode = engineMutex.withLock { decoder.inputMode }
 
     suspend fun reset() = engineMutex.withLock {
         decoder.reset()

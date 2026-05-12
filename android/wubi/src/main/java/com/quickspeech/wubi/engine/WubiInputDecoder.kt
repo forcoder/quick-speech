@@ -10,6 +10,7 @@ class WubiInputDecoder {
     private val codeBuffer = StringBuilder()
 
     /** 当前输入模式 */
+    @Volatile
     var inputMode: InputMode = InputMode.CHINESE
         private set
 

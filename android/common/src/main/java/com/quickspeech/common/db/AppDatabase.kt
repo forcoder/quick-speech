@@ -46,6 +46,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "quickspeech_database"
                 )
                     .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

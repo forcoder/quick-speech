@@ -71,6 +71,7 @@ abstract class AiReplyDatabase : RoomDatabase() {
                     "ai_reply_database"
                 )
                     .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

@@ -167,7 +167,9 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
         // ===== AI panel toggle with animation =====
         view.findViewById<TextView>(R.id.key_ai_toggle)?.setOnClickListener {
-            isAiPanelVisible = !isAiPanelVisible
+            synchronized(this@QuickSpeechInputMethodService) {
+                isAiPanelVisible = !isAiPanelVisible
+            }
             val aiPanel = view.findViewById<LinearLayout>(R.id.ai_panel)
             if (isAiPanelVisible) {
                 aiPanel?.visibility = View.VISIBLE
@@ -319,9 +321,11 @@ class QuickSpeechInputMethodService : InputMethodService() {
                 currentInputText += " "
             }
             // Auto-disable temporary Shift after use
-            if (isShiftOn && !isCapsLock) {
-                isShiftOn = false
-                updateShiftKeyVisual(view)
+            synchronized(this@QuickSpeechInputMethodService) {
+                if (isShiftOn && !isCapsLock) {
+                    isShiftOn = false
+                    updateShiftKeyVisual(view)
+                }
             }
         }
 
@@ -385,7 +389,9 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
         // ===== Associated words expand/collapse toggle =====
         view.findViewById<TextView>(R.id.btn_candidates_more)?.setOnClickListener {
-            showAssociatedWords = !showAssociatedWords
+            synchronized(this@QuickSpeechInputMethodService) {
+                showAssociatedWords = !showAssociatedWords
+            }
             updateCandidates(view)
             // Update button visual
             view.findViewById<TextView>(R.id.btn_candidates_more)?.text =
@@ -470,9 +476,11 @@ class QuickSpeechInputMethodService : InputMethodService() {
                 currentInputText += out
                 triggerAiSuggestions()
                 // Auto-disable temporary Shift
-                if (isShiftOn && !isCapsLock && inputView != null) {
-                    isShiftOn = false
-                    updateShiftKeyVisual(inputView!!)
+                synchronized(this@QuickSpeechInputMethodService) {
+                    if (isShiftOn && !isCapsLock && inputView != null) {
+                        isShiftOn = false
+                        updateShiftKeyVisual(inputView!!)
+                    }
                 }
             }
             else -> {
@@ -511,9 +519,11 @@ class QuickSpeechInputMethodService : InputMethodService() {
             currentInputText = ""
         }
         // Auto-disable temporary Shift
-        if (isShiftOn && !isCapsLock && inputView != null) {
-            isShiftOn = false
-            updateShiftKeyVisual(inputView!!)
+        synchronized(this@QuickSpeechInputMethodService) {
+            if (isShiftOn && !isCapsLock && inputView != null) {
+                isShiftOn = false
+                updateShiftKeyVisual(inputView!!)
+            }
         }
     }
 
@@ -552,7 +562,9 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
     // ===== Symbol keyboard toggle =====
     private fun toggleSymbolMode(view: View) {
-        isSymbolMode = !isSymbolMode
+        synchronized(this@QuickSpeechInputMethodService) {
+            isSymbolMode = !isSymbolMode
+        }
         val mainKeyboard = view.findViewById<LinearLayout>(R.id.keyboard_main)
         val symbolKeyboard = view.findViewById<LinearLayout>(R.id.keyboard_symbol)
         val symbolKey = view.findViewById<TextView>(R.id.key_symbol)
@@ -1057,11 +1069,14 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
     override fun onStartInput(attribute: android.view.inputmethod.EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
-        // Reset per-input-session state
-        isEnglishMode = false
-        isSymbolMode = false
-        isShiftOn = false
-        isCapsLock = false
+        // Reset per-input-session state atomically
+        synchronized(this@QuickSpeechInputMethodService) {
+            isEnglishMode = false
+            isSymbolMode = false
+            isShiftOn = false
+            isCapsLock = false
+            isAiPanelVisible = false
+        }
         currentInputText = ""
         Log.d(TAG, "onStartInput restarting=$restarting")
     }
