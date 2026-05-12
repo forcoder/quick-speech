@@ -1,5 +1,6 @@
 package com.quickspeech.input.ai.engine
 
+import android.util.Log
 import com.quickspeech.input.ai.BehaviorRecorder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -214,8 +215,8 @@ class StyleLearningEngine @Inject constructor(
             try {
                 val profile = styleAnalyzer.analyzeComprehensive()
                 _currentProfile.value = profile
-            } catch (_: Exception) {
-                // Silently fail - style learning should never disrupt the user experience
+            } catch (e: Exception) {
+                Log.d("StyleLearningEngine", "Incremental update failed", e)
             }
         }
     }

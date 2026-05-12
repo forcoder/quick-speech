@@ -7,6 +7,7 @@ import com.quickspeech.wubi.engine.EngineResult
 import com.quickspeech.wubi.engine.InputMode
 import com.quickspeech.wubi.engine.RankedCandidate
 import com.quickspeech.wubi.engine.WubiInputEngine
+import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -77,7 +78,7 @@ class WubiViewModel(
                     is EngineResult.Composing -> { /* candidates/code updated via StateFlow */ }
                 }
             } catch (e: Throwable) {
-                // Engine failure should not crash the UI
+                Log.e("WubiViewModel", "Engine error on key '$key'", e)
             }
         }
     }

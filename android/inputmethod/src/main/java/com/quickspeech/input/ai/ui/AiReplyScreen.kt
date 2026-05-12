@@ -36,7 +36,7 @@ fun AiReplyScreen(
                 .padding(16.dp)
         ) {
             Text(
-                text = "AI 智能回复调试界面",
+                text = "AI 智能回复",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface

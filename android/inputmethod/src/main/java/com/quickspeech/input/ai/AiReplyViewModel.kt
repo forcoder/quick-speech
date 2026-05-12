@@ -240,6 +240,10 @@ class AiReplyViewModel @Inject constructor(
         }
     }
 
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
+    }
+
     fun refreshReplies() {
         generateReplies()
     }

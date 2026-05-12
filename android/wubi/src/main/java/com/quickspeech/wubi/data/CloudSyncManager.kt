@@ -1,6 +1,7 @@
 package com.quickspeech.wubi.data
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -23,6 +24,7 @@ class CloudSyncManager @Inject constructor(
     private val dao: WubiDao
 ) {
     companion object {
+        private const val TAG = "CloudSyncManager"
         private val DICT_VERSION_KEY = intPreferencesKey("dict_version")
         private val LAST_SYNC_KEY = longPreferencesKey("last_sync_time")
     }
@@ -48,6 +50,7 @@ class CloudSyncManager @Inject constructor(
             // context.syncDataStore.edit { it[DICT_VERSION_KEY] = updates.version }
             true
         } catch (e: Exception) {
+            Log.e(TAG, "performDictUpdate failed", e)
             false
         }
     }
@@ -60,6 +63,7 @@ class CloudSyncManager @Inject constructor(
             // TODO: 收集用户统计数据并上传
             true
         } catch (e: Exception) {
+            Log.e(TAG, "uploadStats failed", e)
             false
         }
     }

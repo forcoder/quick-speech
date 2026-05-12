@@ -230,6 +230,14 @@ class EvolutionViewModel @Inject constructor(
         }
     }
 
+    fun onPositiveFeedback() {
+        _uiState.value = _uiState.value.copy(message = "已记录正面反馈 👍")
+    }
+
+    fun onNegativeFeedback() {
+        _uiState.value = _uiState.value.copy(message = "已记录负面反馈 👎")
+    }
+
     fun resetStyleLearning() {
         viewModelScope.launch {
             behaviorRecordDao.deleteAll()

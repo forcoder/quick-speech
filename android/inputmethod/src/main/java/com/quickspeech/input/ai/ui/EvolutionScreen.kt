@@ -584,12 +584,12 @@ private fun StyleTab(viewModel: EvolutionViewModel, uiState: EvolutionUiState) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedButton(onClick = { }, modifier = Modifier.weight(1f)) {
+                    OutlinedButton(onClick = { viewModel.onPositiveFeedback() }, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Filled.ThumbUp, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("更像这样")
                     }
-                    OutlinedButton(onClick = { }, modifier = Modifier.weight(1f)) {
+                    OutlinedButton(onClick = { viewModel.onNegativeFeedback() }, modifier = Modifier.weight(1f)) {
                         Icon(
                             Icons.Filled.ThumbDown,
                             contentDescription = null,

@@ -15,7 +15,7 @@ class WubiEngine {
             try {
                 System.loadLibrary("wubi-engine")
                 isNativeLoaded = true
-                Log.e(TAG, "Native library loaded successfully")
+                Log.i(TAG, "Native library loaded successfully")
             } catch (e: UnsatisfiedLinkError) {
                 Log.e(TAG, "Failed to load native library: ${e.message}")
                 isNativeLoaded = false

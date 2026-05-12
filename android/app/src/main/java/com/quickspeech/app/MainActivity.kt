@@ -18,7 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.e("QuickSpeech", "MainActivity onCreate")
+        Log.d("QuickSpeech", "MainActivity onCreate")
         enableEdgeToEdge()
         setContent {
             QuickSpeechTheme {

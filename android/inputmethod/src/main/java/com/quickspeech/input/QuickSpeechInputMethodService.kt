@@ -29,6 +29,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class QuickSpeechInputMethodService : InputMethodService() {
 
@@ -70,17 +71,8 @@ class QuickSpeechInputMethodService : InputMethodService() {
             userRuleManager = UserRuleManager(applicationContext, entryPoint.userRuleDao(), userRuleEngine)
             Log.d(TAG, "ViewModel + UserRuleManager created")
         } catch (e: Throwable) {
-            Log.d(TAG, "Fatal error in onCreate - IME may not function", e)
+            Log.e(TAG, "Fatal error in onCreate - IME may not function", e)
             throw e
-        }
-        // Observe error state and show Toast to user
-        scope?.launch {
-            viewModel.uiState.collectLatest { state ->
-                state.error?.let { errorMsg ->
-                    Toast.makeText(applicationContext, errorMsg, Toast.LENGTH_SHORT).show()
-                    viewModel.clearError()
-                }
-            }
         }
         Log.d(TAG, "onCreate finished")
     }
@@ -90,6 +82,16 @@ class QuickSpeechInputMethodService : InputMethodService() {
         scope?.cancel()
         scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         Log.d(TAG, "onCreateInputView")
+
+        // Observe error state on Main thread for Toast display
+        scope?.launch(Dispatchers.Main) {
+            viewModel.uiState.collectLatest { state ->
+                state.error?.let { errorMsg ->
+                    Toast.makeText(applicationContext, errorMsg, Toast.LENGTH_SHORT).show()
+                    viewModel.clearError()
+                }
+            }
+        }
         val view = LayoutInflater.from(this).inflate(R.layout.input_method_view, null)
 
         // ===== Letter keys =====
@@ -111,21 +113,23 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
         // ===== Shift (case toggle) =====
         view.findViewById<TextView>(R.id.key_shift)?.setOnClickListener {
-            val now = System.currentTimeMillis()
-            if (now - lastShiftTapTime < 400) {
-                // Double tap: Caps Lock toggle
-                isCapsLock = !isCapsLock
-                isShiftOn = false
-            } else {
-                // Single tap: temporary uppercase
-                if (isCapsLock) {
-                    isCapsLock = false
+            synchronized(this@QuickSpeechInputMethodService) {
+                val now = System.currentTimeMillis()
+                if (now - lastShiftTapTime < 400) {
+                    // Double tap: Caps Lock toggle
+                    isCapsLock = !isCapsLock
                     isShiftOn = false
                 } else {
-                    isShiftOn = !isShiftOn
+                    // Single tap: temporary uppercase
+                    if (isCapsLock) {
+                        isCapsLock = false
+                        isShiftOn = false
+                    } else {
+                        isShiftOn = !isShiftOn
+                    }
                 }
+                lastShiftTapTime = now
             }
-            lastShiftTapTime = now
             updateShiftKeyVisual(view)
         }
 
@@ -203,7 +207,18 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
         // ===== Language toggle (Chinese/English) =====
         view.findViewById<TextView>(R.id.key_toggle_lang)?.setOnClickListener {
-            isEnglishMode = !isEnglishMode
+            synchronized(this@QuickSpeechInputMethodService) {
+                isEnglishMode = !isEnglishMode
+                // Auto-enable Shift when switching to English
+                if (isEnglishMode && !isShiftOn && !isCapsLock) {
+                    isShiftOn = true
+                }
+                // Disable Shift when switching back to Chinese
+                if (!isEnglishMode) {
+                    isShiftOn = false
+                    isCapsLock = false
+                }
+            }
             view.findViewById<TextView>(R.id.key_toggle_lang)?.apply {
                 if (isEnglishMode) {
                     text = "英"
@@ -215,17 +230,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                     setTextColor(0xFF555555.toInt())
                 }
             }
-            // Auto-enable Shift when switching to English
-            if (isEnglishMode && !isShiftOn && !isCapsLock) {
-                isShiftOn = true
-                updateShiftKeyVisual(view)
-            }
-            // Disable Shift when switching back to Chinese
-            if (!isEnglishMode) {
-                isShiftOn = false
-                isCapsLock = false
-                updateShiftKeyVisual(view)
-            }
+            updateShiftKeyVisual(view)
         }
 
         // ===== Voice input =====
@@ -1066,6 +1071,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
         scope?.cancel()
         scope = null
         viewModel.clear()
+        inputView = null
         Log.d(TAG, "onDestroy - cleaned up resources")
         super.onDestroy()
     }
