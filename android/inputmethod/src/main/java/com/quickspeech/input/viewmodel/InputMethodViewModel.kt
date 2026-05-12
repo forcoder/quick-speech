@@ -24,7 +24,8 @@ data class InputMethodUiState(
     val isLoading: Boolean = false,
     val appType: String = "unknown",
     val userRuleMatch: UserRuleMatch? = null,
-    val userRulePrefixMatches: List<UserRuleEntity> = emptyList()
+    val userRulePrefixMatches: List<UserRuleEntity> = emptyList(),
+    val error: String? = null
 )
 
 data class UserRuleMatch(
@@ -114,11 +115,25 @@ class InputMethodViewModel(
 
     fun onKeyInput(key: String) {
         if (key.isEmpty()) return
-        scope.launch { try { handleEngineResult(wubiInputEngine.processKey(key[0])) } catch (e: Throwable) { Log.e("QuickSpeech", "key error", e) } }
+        scope.launch {
+            try {
+                handleEngineResult(wubiInputEngine.processKey(key[0]))
+            } catch (e: Throwable) {
+                Log.e("QuickSpeech", "key error", e)
+                _uiState.value = _uiState.value.copy(error = "输入处理失败")
+            }
+        }
     }
 
     fun onDelete() {
-        scope.launch { try { handleEngineResult(wubiInputEngine.processKey('\b')) } catch (e: Throwable) { Log.e("QuickSpeech", "del error", e) } }
+        scope.launch {
+            try {
+                handleEngineResult(wubiInputEngine.processKey('\b'))
+            } catch (e: Throwable) {
+                Log.e("QuickSpeech", "del error", e)
+                _uiState.value = _uiState.value.copy(error = "删除失败")
+            }
+        }
     }
 
     fun onCandidateSelected(candidate: String) {
@@ -126,7 +141,10 @@ class InputMethodViewModel(
             try {
                 val idx = _uiState.value.candidates.indexOf(candidate)
                 if (idx in 0..6) handleEngineResult(wubiInputEngine.processKey('1' + idx))
-            } catch (e: Throwable) { Log.e("QuickSpeech", "sel error", e) }
+            } catch (e: Throwable) {
+                Log.e("QuickSpeech", "sel error", e)
+                _uiState.value = _uiState.value.copy(error = "选词失败")
+            }
         }
     }
 
@@ -140,16 +158,16 @@ class InputMethodViewModel(
     fun onInputStarted() {}
 
     fun onInputFinished() {
-        _uiState.value = _uiState.value.copy(
-            inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
-            aiReplies = emptyList(), isAiPanelVisible = false,
-            userRuleMatch = null, userRulePrefixMatches = emptyList()
-        )
+        _uiState.value = InputMethodUiState()
         wubiInputEngine.reset()
     }
 
     fun clearCandidates() {
-        _uiState.value = _uiState.value.copy(inputCode = "", candidates = emptyList(), associatedWords = emptyList())
+        _uiState.value = _uiState.value.copy(inputCode = "", candidates = emptyList(), associatedWords = emptyList(), error = null)
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(error = null)
     }
 
     private fun handleEngineResult(result: EngineResult) {

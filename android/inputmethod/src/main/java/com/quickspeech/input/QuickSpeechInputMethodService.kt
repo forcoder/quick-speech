@@ -27,6 +27,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class QuickSpeechInputMethodService : InputMethodService() {
@@ -71,6 +72,15 @@ class QuickSpeechInputMethodService : InputMethodService() {
         } catch (e: Throwable) {
             Log.d(TAG, "Fatal error in onCreate - IME may not function", e)
             throw e
+        }
+        // Observe error state and show Toast to user
+        scope?.launch {
+            viewModel.uiState.collectLatest { state ->
+                state.error?.let { errorMsg ->
+                    Toast.makeText(applicationContext, errorMsg, Toast.LENGTH_SHORT).show()
+                    viewModel.clearError()
+                }
+            }
         }
         Log.d(TAG, "onCreate finished")
     }

@@ -169,7 +169,7 @@ class WubiMatcher(private val dao: WubiDao) {
                 try {
                     val results = dao.exactMatch(correctedCode)
                     candidates.addAll(results)
-                } catch (_: Exception) {}
+                } catch (_: Exception) { /* best-effort: most adjacent keys won't match */ }
             }
         }
 
