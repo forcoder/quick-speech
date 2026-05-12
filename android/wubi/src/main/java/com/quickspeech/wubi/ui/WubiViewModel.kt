@@ -77,8 +77,10 @@ class WubiViewModel(
                     is EngineResult.Ignored -> { /* no-op */ }
                     is EngineResult.Composing -> { /* candidates/code updated via StateFlow */ }
                 }
-            } catch (e: Throwable) {
+            } catch (e: Exception) {
                 Log.e("WubiViewModel", "Engine error on key '$key'", e)
+            } catch (e: Throwable) {
+                Log.e("WubiViewModel", "Unexpected error on key '$key'", e)
             }
         }
     }
@@ -119,7 +121,7 @@ class WubiViewModel(
      * 切换输入模式
      */
     fun toggleInputMode() {
-        engine.toggleInputMode()
+        viewModelScope.launch { engine.toggleInputMode() }
     }
 
     /**
@@ -159,8 +161,10 @@ class WubiViewModel(
      * 重置学习数据并清空输出
      */
     fun resetLearning() {
-        engine.reset()
-        outputText.value = ""
+        viewModelScope.launch {
+            engine.reset()
+            outputText.value = ""
+        }
     }
 
     /**
@@ -194,7 +198,9 @@ class WubiViewModel(
      * 重置引擎
      */
     fun reset() {
-        engine.reset()
-        outputText.value = ""
+        viewModelScope.launch {
+            engine.reset()
+            outputText.value = ""
+        }
     }
 }

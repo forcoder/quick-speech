@@ -168,18 +168,18 @@ class WubiInputEngine @Inject constructor(
         }
     }
 
-    fun toggleInputMode(): InputMode {
+    suspend fun toggleInputMode(): InputMode = engineMutex.withLock {
         val newMode = decoder.toggleMode()
         _inputMode.value = newMode
         _composingCode.value = ""
         _candidates.value = emptyList()
         _associatedWords.value = emptyList()
-        return newMode
+        newMode
     }
 
     fun getInputMode(): InputMode = decoder.inputMode
 
-    fun reset() {
+    suspend fun reset() = engineMutex.withLock {
         decoder.reset()
         _candidates.value = emptyList()
         _composingCode.value = ""

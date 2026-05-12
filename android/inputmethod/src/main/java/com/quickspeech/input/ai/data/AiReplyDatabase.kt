@@ -69,7 +69,9 @@ abstract class AiReplyDatabase : RoomDatabase() {
                     context.applicationContext,
                     AiReplyDatabase::class.java,
                     "ai_reply_database"
-                ).build()
+                )
+                    .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+                    .build()
                 INSTANCE = instance
                 instance
             }

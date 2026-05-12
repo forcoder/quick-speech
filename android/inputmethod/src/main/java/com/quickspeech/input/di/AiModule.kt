@@ -1,7 +1,6 @@
 package com.quickspeech.input.di
 
 import android.content.Context
-import androidx.room.Room
 import com.quickspeech.input.ai.BehaviorRecorder
 import com.quickspeech.input.ai.data.*
 import com.quickspeech.input.ai.engine.LocalReplyGenerator
@@ -28,11 +27,7 @@ object AiModule {
     @Provides
     @Singleton
     fun provideAiReplyDatabase(@ApplicationContext context: Context): AiReplyDatabase {
-        return Room.databaseBuilder(
-            context,
-            AiReplyDatabase::class.java,
-            "ai_reply_database"
-        ).build()
+        return AiReplyDatabase.getInstance(context)
     }
 
     @Provides

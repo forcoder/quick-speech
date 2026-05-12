@@ -1,6 +1,7 @@
 package com.quickspeech.input.ui
 
 import android.content.Context
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.quickspeech.wubi.data.UserRuleDao
@@ -25,6 +26,7 @@ class UserRuleManager(
     private val gson = Gson()
 
     companion object {
+        private const val TAG = "UserRuleManager"
         private const val EXPORT_FILENAME_PREFIX = "quickspeech_rules_"
         private const val EXPORT_FILENAME_SUFFIX = ".json"
     }
@@ -95,6 +97,7 @@ class UserRuleManager(
             ruleDao.deleteRuleById(ruleId)
             true
         } catch (e: Exception) {
+            Log.e(TAG, "deleteRule failed for ruleId=$ruleId", e)
             false
         }
     }
@@ -152,6 +155,7 @@ class UserRuleManager(
             exportFile.writeText(gson.toJson(exportData))
             exportFile
         } catch (e: Exception) {
+            Log.e(TAG, "exportRules failed", e)
             null
         }
     }
@@ -191,6 +195,7 @@ class UserRuleManager(
             }
             importedCount
         } catch (e: Exception) {
+            Log.e(TAG, "importRules failed", e)
             -1
         }
     }
@@ -204,6 +209,7 @@ class UserRuleManager(
             val jsonString = file.readText()
             importRules(jsonString)
         } catch (e: Exception) {
+            Log.e(TAG, "importRulesFromFile failed for file=${file.path}", e)
             -1
         }
     }

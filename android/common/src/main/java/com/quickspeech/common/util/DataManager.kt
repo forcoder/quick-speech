@@ -2,6 +2,7 @@ package com.quickspeech.common.util
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.core.content.FileProvider
 import com.quickspeech.common.db.AppDatabase
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,6 +22,9 @@ class DataManager @Inject constructor(
     private val database: AppDatabase,
     private val encryptionHelper: EncryptionHelper
 ) {
+    companion object {
+        private const val TAG = "DataManager"
+    }
 
     suspend fun exportUserData(): File = withContext(Dispatchers.IO) {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -73,6 +77,7 @@ class DataManager @Inject constructor(
             }
             true
         } catch (e: Exception) {
+            Log.e(TAG, "deleteAllUserData failed", e)
             false
         }
     }

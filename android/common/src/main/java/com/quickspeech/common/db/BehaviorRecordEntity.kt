@@ -1,9 +1,17 @@
 package com.quickspeech.common.db
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "behavior_records")
+@Entity(
+    tableName = "behavior_records",
+    indices = [
+        Index(value = ["timestamp"]),
+        Index(value = ["userAction"]),
+        Index(value = ["sceneType"])
+    ]
+)
 data class BehaviorRecordEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

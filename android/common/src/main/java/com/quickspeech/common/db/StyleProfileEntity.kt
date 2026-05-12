@@ -1,9 +1,13 @@
 package com.quickspeech.common.db
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "style_profiles")
+@Entity(
+    tableName = "style_profiles",
+    indices = [Index(value = ["lastUpdated"])]
+)
 data class StyleProfileEntity(
     @PrimaryKey
     val id: String = "default",

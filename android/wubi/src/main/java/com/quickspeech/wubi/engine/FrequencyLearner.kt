@@ -59,8 +59,13 @@ class FrequencyLearner(private val dao: WubiDao) {
 
             // 定期清理过期数据（每24小时一次，避免每次选词都执行IO）
             val now = System.currentTimeMillis()
-            if (now - lastCleanupTime > cleanupIntervalMs) {
-                lastCleanupTime = now
+            val shouldCleanup = synchronized(this@FrequencyLearner) {
+                if (now - lastCleanupTime > cleanupIntervalMs) {
+                    lastCleanupTime = now
+                    true
+                } else false
+            }
+            if (shouldCleanup) {
                 val thirtyDaysAgo = now - 30L * 24 * 60 * 60 * 1000
                 dao.cleanOldRecentWords(thirtyDaysAgo)
             }

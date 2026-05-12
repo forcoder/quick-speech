@@ -105,12 +105,14 @@ class InputMethodViewModel(
     }
 
     fun onUserRuleSelected(match: UserRuleMatch) {
-        scope.launch { try { userRuleEngine.recordUsage(match.ruleId) } catch (e: Throwable) { Log.d("QuickSpeech", "recordUsage failed", e) } }
-        wubiInputEngine.reset()
-        _uiState.value = _uiState.value.copy(
-            inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
-            userRuleMatch = null, userRulePrefixMatches = emptyList()
-        )
+        scope.launch {
+            try { userRuleEngine.recordUsage(match.ruleId) } catch (e: Throwable) { Log.d("QuickSpeech", "recordUsage failed", e) }
+            wubiInputEngine.reset()
+            _uiState.value = _uiState.value.copy(
+                inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
+                userRuleMatch = null, userRulePrefixMatches = emptyList()
+            )
+        }
     }
 
     fun onKeyInput(key: String) {
@@ -158,8 +160,10 @@ class InputMethodViewModel(
     fun onInputStarted() {}
 
     fun onInputFinished() {
-        _uiState.value = InputMethodUiState()
-        wubiInputEngine.reset()
+        scope.launch {
+            wubiInputEngine.reset()
+            _uiState.value = InputMethodUiState()
+        }
     }
 
     fun clearCandidates() {
@@ -182,7 +186,7 @@ class InputMethodViewModel(
                 inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
                 userRuleMatch = null, userRulePrefixMatches = emptyList()
             )
-            is EngineResult.Backspace -> {}
+            is EngineResult.Backspace -> { /* Engine buffer empty; IME service handles input connection backspace directly */ }
             is EngineResult.Cleared -> _uiState.value = _uiState.value.copy(
                 inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
                 userRuleMatch = null, userRulePrefixMatches = emptyList()

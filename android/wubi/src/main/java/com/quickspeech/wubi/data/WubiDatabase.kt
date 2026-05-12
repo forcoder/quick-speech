@@ -26,6 +26,7 @@ abstract class WubiDatabase : RoomDatabase() {
                 DATABASE_NAME
             )
                 .createFromAsset("database/wubi_dict.db")
+                .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
                 .build()
         }
     }

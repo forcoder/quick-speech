@@ -1,9 +1,17 @@
 package com.quickspeech.common.db
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "corrections")
+@Entity(
+    tableName = "corrections",
+    indices = [
+        Index(value = ["knowledgeId"]),
+        Index(value = ["status"]),
+        Index(value = ["correctionTimestamp"])
+    ]
+)
 data class CorrectionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

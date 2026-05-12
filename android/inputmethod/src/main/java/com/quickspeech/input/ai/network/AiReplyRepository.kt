@@ -255,7 +255,7 @@ class AiReplyRepository @Inject constructor(
         val analysis = contextAnalyzer.analyze(inputContext, appCategory)
         return deduplicated
             .map { reply ->
-                val preferenceScore = replyPreferenceScores[reply.text] ?: 0.5f
+                val preferenceScore = synchronized(replyPreferenceScores) { replyPreferenceScores[reply.text] ?: 0.5f }
                 val rankedConfidence = (reply.confidence * 0.7f) + (preferenceScore * 0.3f)
                 reply.copy(confidence = rankedConfidence.coerceIn(0f, 1f))
             }
@@ -264,15 +264,17 @@ class AiReplyRepository @Inject constructor(
 
     private fun getCachedReplies(inputContext: String, appCategory: AppCategory): CachedReply? {
         val cacheKey = buildCacheKey(inputContext, appCategory)
-        val cached = replyCache[cacheKey] ?: return null
+        synchronized(replyCache) {
+            val cached = replyCache[cacheKey] ?: return null
 
-        // Check TTL
-        if (System.currentTimeMillis() - cached.timestamp > CACHE_TTL_MS) {
-            replyCache.remove(cacheKey)
-            return null
+            // Check TTL
+            if (System.currentTimeMillis() - cached.timestamp > CACHE_TTL_MS) {
+                replyCache.remove(cacheKey)
+                return null
+            }
+
+            return cached
         }
-
-        return cached
     }
 
     private fun buildCacheKey(inputContext: String, appCategory: AppCategory): String {

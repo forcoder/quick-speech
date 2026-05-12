@@ -1,5 +1,6 @@
 package com.quickspeech.input.ai
 
+import android.util.Log
 import com.quickspeech.common.db.BehaviorRecordDao
 import com.quickspeech.common.db.BehaviorRecordEntity
 import com.quickspeech.common.db.UserActionType
@@ -22,14 +23,18 @@ class BehaviorRecorder @Inject constructor(
         contextPrompt: String? = null
     ) {
         scope.launch {
-            behaviorRecordDao.insert(
-                BehaviorRecordEntity(
-                    originalReply = originalReply,
-                    userAction = UserActionType.ACCEPTED,
-                    sceneType = sceneType,
-                    contextPrompt = contextPrompt
+            try {
+                behaviorRecordDao.insert(
+                    BehaviorRecordEntity(
+                        originalReply = originalReply,
+                        userAction = UserActionType.ACCEPTED,
+                        sceneType = sceneType,
+                        contextPrompt = contextPrompt
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                Log.d("BehaviorRecorder", "recordAccepted failed", e)
+            }
         }
     }
 
@@ -39,14 +44,18 @@ class BehaviorRecorder @Inject constructor(
         contextPrompt: String? = null
     ) {
         scope.launch {
-            behaviorRecordDao.insert(
-                BehaviorRecordEntity(
-                    originalReply = originalReply,
-                    userAction = UserActionType.SKIPPED,
-                    sceneType = sceneType,
-                    contextPrompt = contextPrompt
+            try {
+                behaviorRecordDao.insert(
+                    BehaviorRecordEntity(
+                        originalReply = originalReply,
+                        userAction = UserActionType.SKIPPED,
+                        sceneType = sceneType,
+                        contextPrompt = contextPrompt
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                Log.d("BehaviorRecorder", "recordSkipped failed", e)
+            }
         }
     }
 
@@ -57,15 +66,19 @@ class BehaviorRecorder @Inject constructor(
         contextPrompt: String? = null
     ) {
         scope.launch {
-            behaviorRecordDao.insert(
-                BehaviorRecordEntity(
-                    originalReply = originalReply,
-                    userAction = UserActionType.MODIFIED,
-                    modifiedReply = modifiedReply,
-                    sceneType = sceneType,
-                    contextPrompt = contextPrompt
+            try {
+                behaviorRecordDao.insert(
+                    BehaviorRecordEntity(
+                        originalReply = originalReply,
+                        userAction = UserActionType.MODIFIED,
+                        modifiedReply = modifiedReply,
+                        sceneType = sceneType,
+                        contextPrompt = contextPrompt
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                Log.d("BehaviorRecorder", "recordModified failed", e)
+            }
         }
     }
 
@@ -76,15 +89,19 @@ class BehaviorRecorder @Inject constructor(
         contextPrompt: String? = null
     ) {
         scope.launch {
-            behaviorRecordDao.insert(
-                BehaviorRecordEntity(
-                    originalReply = originalReply,
-                    userAction = UserActionType.SELF_WRITTEN,
-                    selfWrittenReply = selfWrittenReply,
-                    sceneType = sceneType,
-                    contextPrompt = contextPrompt
+            try {
+                behaviorRecordDao.insert(
+                    BehaviorRecordEntity(
+                        originalReply = originalReply,
+                        userAction = UserActionType.SELF_WRITTEN,
+                        selfWrittenReply = selfWrittenReply,
+                        sceneType = sceneType,
+                        contextPrompt = contextPrompt
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                Log.d("BehaviorRecorder", "recordSelfWritten failed", e)
+            }
         }
     }
 }
