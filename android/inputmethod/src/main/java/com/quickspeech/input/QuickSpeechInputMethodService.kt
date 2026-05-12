@@ -366,8 +366,47 @@ class QuickSpeechInputMethodService : InputMethodService() {
                 if (showAssociatedWords) "▾" else "▸"
         }
 
-        // Bind Wubi radicals to letter keys
-        // com.quickspeech.input.ui.WubiKeyBinder.bindAllKeys(view) // Disabled: no radicals on letter keys
+        // Bind Wubi radicals to letter keys (small radical text above letter)
+        val radicalMap = mapOf(
+            R.id.key_q to "金", R.id.key_w to "人", R.id.key_e to "月",
+            R.id.key_r to "白", R.id.key_t to "禾", R.id.key_y to "言",
+            R.id.key_u to "立", R.id.key_i to "水", R.id.key_o to "火",
+            R.id.key_p to "之",
+            R.id.key_a to "工", R.id.key_s to "木", R.id.key_d to "大",
+            R.id.key_f to "土", R.id.key_g to "一", R.id.key_h to "目",
+            R.id.key_j to "日", R.id.key_k to "口", R.id.key_l to "田",
+            R.id.key_z to "纟", R.id.key_x to "幺", R.id.key_c to "又",
+            R.id.key_v to "女", R.id.key_b to "子", R.id.key_n to "已",
+            R.id.key_m to "山"
+        )
+        for ((keyId, radical) in radicalMap) {
+            view.findViewById<TextView>(keyId)?.apply {
+                val letter = text.toString()
+                val spannable = android.text.SpannableString("$radical\n$letter")
+                spannable.setSpan(
+                    android.text.style.ForegroundColorSpan(0xFF999999.toInt()),
+                    0, radical.length,
+                    android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                spannable.setSpan(
+                    android.text.style.AbsoluteSizeSpan(9, true),
+                    0, radical.length,
+                    android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                spannable.setSpan(
+                    android.text.style.ForegroundColorSpan(0xFF333333.toInt()),
+                    radical.length + 1, spannable.length,
+                    android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                spannable.setSpan(
+                    android.text.style.AbsoluteSizeSpan(15, true),
+                    radical.length + 1, spannable.length,
+                    android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                setText(spannable)
+                gravity = android.view.Gravity.CENTER
+            }
+        }
 
         // ===== Keyboard height proportional to screen width =====
         val displayMetrics = resources.displayMetrics
