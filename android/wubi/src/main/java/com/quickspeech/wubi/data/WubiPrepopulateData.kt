@@ -1293,8 +1293,6 @@ object WubiPrepopulateData {
         "安利" to "pvan",
         "吐槽" to "kngk",
         "卖萌" to "fnav",
-        "996" to "vvnlu",
-        "007" to "ffav",
         "转正" to "ghgh",
         "试用" to "yaet",
         "年终奖" to "utuq",
@@ -1303,10 +1301,9 @@ object WubiPrepopulateData {
         "分红" to "wviw",
         "调岗" to "ymma",
         "转岗" to "lfma",
-        "offer" to "sbwg",
         "项目奖" to "hhuq",
         "绩效奖" to "uxuq",
         "全勤奖" to "wgju",
-        "优秀员" to "wdwk",
+        "优秀员工" to "wkkm",
     )
 }

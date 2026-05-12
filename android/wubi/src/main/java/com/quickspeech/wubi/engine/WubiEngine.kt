@@ -199,7 +199,7 @@ class WubiEngine {
         put("yt", listOf("放")); put("yu", listOf("说")); put("yv", listOf("良")); put("yw", listOf("认"))
         put("yx", listOf("率")); put("yy", listOf("方"))
 
-        // ===== 常用二字词 =====
+        // ===== 常用二字词（全码）=====
         put("adww", listOf("功夫")); put("wgkr", listOf("个人")); put("wwbn", listOf("人们"))
         put("wynb", listOf("你们")); put("wynu", listOf("他们")); put("wyny", listOf("我们"))
         put("fggg", listOf("一起")); put("gggg", listOf("一天")); put("gggt", listOf("一下"))
@@ -209,30 +209,8 @@ class WubiEngine {
         put("rghg", listOf("起来")); put("sghg", listOf("根本")); put("tffh", listOf("和平"))
         put("tkgk", listOf("合适")); put("ttth", listOf("街道")); put("udjg", listOf("关闭"))
         put("ugdu", listOf("关于")); put("ujfb", listOf("问题")); put("ujjd", listOf("问答"))
-        put("vath", listOf("姐姐")); put("vfqn", listOf("婚姻")); put("vfy", listOf("好"))
-        put("vtkm", listOf("姑娘")); put("vvd", listOf("妇")); put("vyve", listOf("娘"))
-        put("wajg", listOf("借钱")); put("waw", listOf("全")); put("wawy", listOf("信念"))
-        put("wb", listOf("他")); put("wbn", listOf("他")); put("wc", listOf("公"))
-        put("wcg", listOf("仅")); put("wd", listOf("你")); put("wdg", listOf("但"))
-        put("wdtf", listOf("做")); put("wf", listOf("他")); put("wfg", listOf("会"))
-        put("wftf", listOf("什么")); put("wg", listOf("个")); put("wh", listOf("你"))
-        put("wi", listOf("你")); put("wj", listOf("介")); put("wk", listOf("保"))
-        put("wl", listOf("佃")); put("wm", listOf("他")); put("wn", listOf("亿"))
-        put("wo", listOf("你")); put("wp", listOf("你")); put("wq", listOf("你"))
-        put("wr", listOf("你")); put("ws", listOf("你")); put("wt", listOf("作"))
-        put("wu", listOf("你")); put("wv", listOf("你")); put("ww", listOf("人"))
-        put("wx", listOf("化")); put("wy", listOf("信")); put("xdt", listOf("细"))
-        put("xefc", listOf("给")); put("xgu", listOf("经")); put("xn", listOf("纪"))
-        put("xw", listOf("给")); put("xx", listOf("丝")); put("xy", listOf("纺"))
-        put("yadk", listOf("让")); put("yb", listOf("离")); put("yc", listOf("充"))
-        put("yd", listOf("诚")); put("ye", listOf("衣")); put("yf", listOf("计"))
-        put("yg", listOf("主")); put("yh", listOf("让")); put("yi", listOf("就"))
-        put("yj", listOf("刘")); put("yk", listOf("文")); put("yl", listOf("亩"))
-        put("ym", listOf("高")); put("yn", listOf("记")); put("yo", listOf("变"))
-        put("yp", listOf("这")); put("yq", listOf("义")); put("yr", listOf("记"))
-        put("ys", listOf("订")); put("yt", listOf("放")); put("yu", listOf("说"))
-        put("yv", listOf("良")); put("yw", listOf("认")); put("yx", listOf("率"))
-        put("yy", listOf("方"))
+        put("vath", listOf("姐姐")); put("vfqn", listOf("婚姻")); put("vtkm", listOf("姑娘"))
+        put("vyve", listOf("娘")); put("wajg", listOf("借钱")); put("wawy", listOf("信念"))
     }
 
     /**

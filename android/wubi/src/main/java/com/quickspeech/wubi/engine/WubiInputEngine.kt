@@ -149,6 +149,11 @@ class WubiInputEngine @Inject constructor(
             learner.recordSelection(word, entry.code)
             _selectedText.value = word
             _associatedWords.value = emptyList()
+        } else {
+            // 联想词不在列表中时，仍记录选择并清空联想
+            learner.recordSelection(word, "")
+            _selectedText.value = word
+            _associatedWords.value = emptyList()
         }
     }
 

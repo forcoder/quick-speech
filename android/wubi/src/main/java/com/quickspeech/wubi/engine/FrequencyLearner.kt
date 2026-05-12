@@ -12,10 +12,17 @@ import kotlinx.coroutines.withContext
  */
 class FrequencyLearner(private val dao: WubiDao) {
 
+    /** 上次清理过期数据的时间戳 */
+    private var lastCleanupTime = 0L
+
+    /** 清理间隔：24小时 */
+    private val cleanupIntervalMs = 24L * 60 * 60 * 1000
+
     /**
      * 记录用户选择了一个词
      * 1. 增加用户词频计数
      * 2. 记录到最近使用表
+     * 3. 定期清理过期数据（每24小时一次，而非每次选词）
      *
      * @param word 用户选择的词
      * @param code 对应的编码
@@ -46,9 +53,13 @@ class FrequencyLearner(private val dao: WubiDao) {
                 )
             )
 
-            // 清理过期的最近使用记录（超过30天）
-            val thirtyDaysAgo = System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000
-            dao.cleanOldRecentWords(thirtyDaysAgo)
+            // 定期清理过期数据（每24小时一次，避免每次选词都执行IO）
+            val now = System.currentTimeMillis()
+            if (now - lastCleanupTime > cleanupIntervalMs) {
+                lastCleanupTime = now
+                val thirtyDaysAgo = now - 30L * 24 * 60 * 60 * 1000
+                dao.cleanOldRecentWords(thirtyDaysAgo)
+            }
         } catch (e: Exception) {
             // 学习失败不影响输入功能
         }
@@ -105,7 +116,6 @@ class FrequencyLearner(private val dao: WubiDao) {
      */
     suspend fun resetLearning() = withContext(Dispatchers.IO) {
         try {
-            // 清空用户词频表
             val allFreqs = dao.getAllUserFrequencies()
             allFreqs.forEach { entry ->
                 dao.insertUserFrequency(entry.copy(count = 0))
