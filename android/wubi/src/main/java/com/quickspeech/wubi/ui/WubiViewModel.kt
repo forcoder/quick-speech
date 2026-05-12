@@ -57,26 +57,27 @@ class WubiViewModel(
      */
     fun onKeyPressed(key: Char) {
         viewModelScope.launch {
-            val result = engine.processKey(key)
-            when (result) {
-                is EngineResult.TextSelected -> {
-                    outputText.value += result.word
-                }
-                is EngineResult.DirectOutput -> {
-                    outputText.value += result.text
-                }
-                is EngineResult.Backspace -> {
-                    // Engine couldn't handle backspace (empty buffer), remove from output
-                    val current = outputText.value
-                    if (current.isNotEmpty()) {
-                        outputText.value = current.dropLast(1)
+            try {
+                val result = engine.processKey(key)
+                when (result) {
+                    is EngineResult.TextSelected -> {
+                        outputText.value += result.word
                     }
+                    is EngineResult.DirectOutput -> {
+                        outputText.value += result.text
+                    }
+                    is EngineResult.Backspace -> {
+                        val current = outputText.value
+                        if (current.isNotEmpty()) {
+                            outputText.value = current.dropLast(1)
+                        }
+                    }
+                    is EngineResult.Cleared -> { /* no output change needed */ }
+                    is EngineResult.Ignored -> { /* no-op */ }
+                    is EngineResult.Composing -> { /* candidates/code updated via StateFlow */ }
                 }
-                is EngineResult.Cleared -> {
-                    // Composing cleared, no output change needed
-                }
-                is EngineResult.Ignored -> { /* no-op */ }
-                is EngineResult.Composing -> { /* candidates/code updated via StateFlow */ }
+            } catch (e: Throwable) {
+                // Engine failure should not crash the UI
             }
         }
     }
