@@ -504,24 +504,26 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
     // ===== Send Enter key respecting EditorInfo action =====
     private fun sendEnterKey() {
-        val editorInfo = currentInputEditorInfo ?: return
+        val ic = currentInputConnection ?: return
+        val editorInfo = currentInputEditorInfo
+        if (editorInfo == null) {
+            // No editor info available, default to newline
+            ic.commitText("\n", 1)
+            return
+        }
         val actionId = editorInfo.imeOptions and EditorInfo.IME_MASK_ACTION
         when (actionId) {
             EditorInfo.IME_ACTION_DONE,
             EditorInfo.IME_ACTION_GO,
             EditorInfo.IME_ACTION_SEARCH,
             EditorInfo.IME_ACTION_SEND -> {
-                currentInputConnection?.performEditorAction(actionId)
+                ic.performEditorAction(actionId)
             }
             EditorInfo.IME_ACTION_NEXT -> {
-                currentInputConnection?.performEditorAction(EditorInfo.IME_ACTION_NEXT)
-            }
-            EditorInfo.IME_ACTION_NONE, EditorInfo.IME_NULL -> {
-                // Default: insert newline
-                currentInputConnection?.commitText("\n", 1)
+                ic.performEditorAction(EditorInfo.IME_ACTION_NEXT)
             }
             else -> {
-                currentInputConnection?.commitText("\n", 1)
+                ic.commitText("\n", 1)
             }
         }
     }
@@ -1053,8 +1055,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
         pendingReplies = emptyList()
         scope?.cancel()
         scope = null
-        // Note: ViewModel is created manually, its viewModelScope is tied to the service lifecycle.
-        // The scope will be cleaned up when the IME process terminates.
+        viewModel.clear()
         Log.d(TAG, "onDestroy - cleaned up resources")
         super.onDestroy()
     }

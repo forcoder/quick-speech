@@ -60,12 +60,12 @@ class WubiInputEngine @Inject constructor(
         userData = UserData(freqs, recent)
     }
 
-    private val decoderMutex = Mutex()
+    private val engineMutex = Mutex()
 
-    suspend fun processKey(key: Char): EngineResult {
-        val result = decoderMutex.withLock { decoder.processKey(key) }
+    suspend fun processKey(key: Char): EngineResult = engineMutex.withLock {
+        val result = decoder.processKey(key)
 
-        return when (result) {
+        when (result) {
             is InputResult.Composing -> {
                 _composingCode.value = result.code
                 val matchResult = matcher.smartMatch(result.code)
@@ -79,7 +79,7 @@ class WubiInputEngine @Inject constructor(
                     _composingCode.value = ""
                     _candidates.value = emptyList()
                     _associatedWords.value = emptyList()
-                    return EngineResult.TextSelected(word)
+                    return@withLock EngineResult.TextSelected(word)
                 }
 
                 val ud = userData
@@ -91,9 +91,8 @@ class WubiInputEngine @Inject constructor(
             is InputResult.Confirmed -> {
                 val currentCandidates = _candidates.value
                 if (currentCandidates.isNotEmpty()) {
-                    selectCandidate(0)
+                    selectCandidateLocked(0)
                 } else {
-                    // 尝试用 JNI 引擎搜索
                     val nativeResults = wubiEngine.search(result.code)
                     if (nativeResults.isNotEmpty()) {
                         _selectedText.value = nativeResults.first()
@@ -112,7 +111,7 @@ class WubiInputEngine @Inject constructor(
                     }
                 }
             }
-            is InputResult.SelectCandidate -> selectCandidate(result.index)
+            is InputResult.SelectCandidate -> selectCandidateLocked(result.index)
             is InputResult.DirectText -> {
                 _selectedText.value = result.text
                 decoder.clear()
@@ -129,7 +128,8 @@ class WubiInputEngine @Inject constructor(
         }
     }
 
-    private suspend fun selectCandidate(index: Int): EngineResult {
+    /** Must be called inside engineMutex */
+    private suspend fun selectCandidateLocked(index: Int): EngineResult {
         val currentCandidates = _candidates.value
         if (index < 0 || index >= currentCandidates.size) return EngineResult.Ignored
 

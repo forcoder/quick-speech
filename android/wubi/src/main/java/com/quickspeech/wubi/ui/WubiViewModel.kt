@@ -59,13 +59,24 @@ class WubiViewModel(
         viewModelScope.launch {
             val result = engine.processKey(key)
             when (result) {
-                is com.quickspeech.wubi.engine.EngineResult.TextSelected -> {
+                is EngineResult.TextSelected -> {
                     outputText.value += result.word
                 }
-                is com.quickspeech.wubi.engine.EngineResult.DirectOutput -> {
+                is EngineResult.DirectOutput -> {
                     outputText.value += result.text
                 }
-                else -> { /* 其他状态通过StateFlow自动更新 */ }
+                is EngineResult.Backspace -> {
+                    // Engine couldn't handle backspace (empty buffer), remove from output
+                    val current = outputText.value
+                    if (current.isNotEmpty()) {
+                        outputText.value = current.dropLast(1)
+                    }
+                }
+                is EngineResult.Cleared -> {
+                    // Composing cleared, no output change needed
+                }
+                is EngineResult.Ignored -> { /* no-op */ }
+                is EngineResult.Composing -> { /* candidates/code updated via StateFlow */ }
             }
         }
     }
@@ -151,12 +162,29 @@ class WubiViewModel(
     }
 
     /**
-     * 删除最后一个字符
+     * 删除最后一个字符（退格）
+     * 委托给引擎处理，保持引擎状态与输出同步
      */
     fun deleteLast() {
-        val current = outputText.value
-        if (current.isNotEmpty()) {
-            outputText.value = current.dropLast(1)
+        viewModelScope.launch {
+            val result = engine.processKey('\b')
+            when (result) {
+                is EngineResult.TextSelected -> {
+                    // Auto-committed on backspace with full code, add word to output
+                    outputText.value += result.word
+                }
+                is EngineResult.Backspace -> {
+                    // Buffer was empty, remove last output char
+                    val current = outputText.value
+                    if (current.isNotEmpty()) {
+                        outputText.value = current.dropLast(1)
+                    }
+                }
+                is EngineResult.DirectOutput -> {
+                    outputText.value += result.text
+                }
+                else -> { /* Composing/Cleared/Ignored - state updated via StateFlow */ }
+            }
         }
     }
 

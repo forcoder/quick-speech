@@ -1,12 +1,14 @@
 package com.quickspeech.input.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.quickspeech.wubi.data.UserRuleEntity
 import com.quickspeech.wubi.engine.EngineResult
 import com.quickspeech.wubi.engine.UserRuleEngine
 import com.quickspeech.wubi.engine.WubiInputEngine
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -48,26 +50,26 @@ enum class AiMode(val label: String) {
 class InputMethodViewModel(
     private val wubiInputEngine: WubiInputEngine,
     private val userRuleEngine: UserRuleEngine
-) : ViewModel() {
+) {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _uiState = MutableStateFlow(InputMethodUiState())
     val uiState: StateFlow<InputMethodUiState> = _uiState
 
     init {
         Log.d("QuickSpeech", "InputMethodViewModel created")
-        viewModelScope.launch {
+        scope.launch {
             try { wubiInputEngine.refreshUserData() } catch (e: Throwable) { Log.e("QuickSpeech", "refresh failed", e) }
         }
-        viewModelScope.launch {
+        scope.launch {
             wubiInputEngine.candidates.collectLatest { ranked ->
                 _uiState.value = _uiState.value.copy(candidates = ranked.map { rc -> rc.entry.word })
             }
         }
-        viewModelScope.launch {
+        scope.launch {
             wubiInputEngine.composingCode.collectLatest { code ->
                 _uiState.value = _uiState.value.copy(inputCode = code)
                 if (code.isNotEmpty()) {
-                    // Launch user rule check as a sibling coroutine, not nested inside collectLatest
                     val exact = userRuleEngine.matchRule(code)
                     if (exact != null) {
                         _uiState.value = _uiState.value.copy(
@@ -85,11 +87,16 @@ class InputMethodViewModel(
                 }
             }
         }
-        viewModelScope.launch {
+        scope.launch {
             wubiInputEngine.associatedWords.collectLatest { words ->
                 _uiState.value = _uiState.value.copy(associatedWords = words.map { it.word })
             }
         }
+    }
+
+    /** Cancel all coroutines when the IME is destroyed */
+    fun clear() {
+        scope.cancel()
     }
 
     private fun clearUserRuleMatches() {
@@ -97,7 +104,7 @@ class InputMethodViewModel(
     }
 
     fun onUserRuleSelected(match: UserRuleMatch) {
-        viewModelScope.launch { try { userRuleEngine.recordUsage(match.ruleId) } catch (e: Throwable) { Log.d("QuickSpeech", "recordUsage failed", e) } }
+        scope.launch { try { userRuleEngine.recordUsage(match.ruleId) } catch (e: Throwable) { Log.d("QuickSpeech", "recordUsage failed", e) } }
         wubiInputEngine.reset()
         _uiState.value = _uiState.value.copy(
             inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
@@ -107,15 +114,15 @@ class InputMethodViewModel(
 
     fun onKeyInput(key: String) {
         if (key.isEmpty()) return
-        viewModelScope.launch { try { handleEngineResult(wubiInputEngine.processKey(key[0])) } catch (e: Throwable) { Log.e("QuickSpeech", "key error", e) } }
+        scope.launch { try { handleEngineResult(wubiInputEngine.processKey(key[0])) } catch (e: Throwable) { Log.e("QuickSpeech", "key error", e) } }
     }
 
     fun onDelete() {
-        viewModelScope.launch { try { handleEngineResult(wubiInputEngine.processKey('\b')) } catch (e: Throwable) { Log.e("QuickSpeech", "del error", e) } }
+        scope.launch { try { handleEngineResult(wubiInputEngine.processKey('\b')) } catch (e: Throwable) { Log.e("QuickSpeech", "del error", e) } }
     }
 
     fun onCandidateSelected(candidate: String) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 val idx = _uiState.value.candidates.indexOf(candidate)
                 if (idx in 0..6) handleEngineResult(wubiInputEngine.processKey('1' + idx))
@@ -124,7 +131,7 @@ class InputMethodViewModel(
     }
 
     fun onAssociatedWordSelected(word: String) {
-        viewModelScope.launch { try { wubiInputEngine.selectAssociatedWord(word) } catch (e: Throwable) { Log.d("QuickSpeech", "selectAssociatedWord failed", e) } }
+        scope.launch { try { wubiInputEngine.selectAssociatedWord(word) } catch (e: Throwable) { Log.d("QuickSpeech", "selectAssociatedWord failed", e) } }
     }
 
     fun onAiReplySelected(reply: AiReplyUiItem) { _uiState.value = _uiState.value.copy(aiReplies = emptyList(), isAiPanelVisible = false) }

@@ -42,6 +42,7 @@ class AiReplyViewModel @Inject constructor(
     val uiState: StateFlow<AiReplyUiState> = _uiState.asStateFlow()
 
     private val _inputContext = MutableStateFlow("")
+    private var generateJob: kotlinx.coroutines.Job? = null
 
     init {
         viewModelScope.launch {
@@ -56,7 +57,8 @@ class AiReplyViewModel @Inject constructor(
     }
 
     fun generateReplies() {
-        viewModelScope.launch {
+        generateJob?.cancel()
+        generateJob = viewModelScope.launch {
             val context = _inputContext.value
             if (context.isBlank()) return@launch
 

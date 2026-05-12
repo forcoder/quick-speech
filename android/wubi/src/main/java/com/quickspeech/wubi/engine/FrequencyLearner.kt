@@ -1,10 +1,13 @@
 package com.quickspeech.wubi.engine
 
+import android.util.Log
 import com.quickspeech.wubi.data.RecentWordEntry
 import com.quickspeech.wubi.data.UserFrequencyEntry
 import com.quickspeech.wubi.data.WubiDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
+private const val TAG = "FrequencyLearner"
 
 /**
  * 词频学习引擎
@@ -62,7 +65,7 @@ class FrequencyLearner(private val dao: WubiDao) {
                 dao.cleanOldRecentWords(thirtyDaysAgo)
             }
         } catch (e: Exception) {
-            // 学习失败不影响输入功能
+            Log.d(TAG, "recordSelection failed for word=$word", e)
         }
     }
 
@@ -73,6 +76,7 @@ class FrequencyLearner(private val dao: WubiDao) {
         try {
             dao.getAllUserFrequencies().associateBy { it.word }
         } catch (e: Exception) {
+            Log.d(TAG, "getUserFrequencies failed", e)
             emptyMap()
         }
     }
@@ -84,6 +88,7 @@ class FrequencyLearner(private val dao: WubiDao) {
         try {
             dao.getRecentWords(limit).map { it.word }.toSet()
         } catch (e: Exception) {
+            Log.d(TAG, "getRecentWords failed", e)
             emptySet()
         }
     }
@@ -107,7 +112,7 @@ class FrequencyLearner(private val dao: WubiDao) {
                     )
                 }
             } catch (e: Exception) {
-                // 忽略单个错误
+                Log.d(TAG, "batchLearn failed for word=$word", e)
             }
         }
     }
@@ -122,7 +127,7 @@ class FrequencyLearner(private val dao: WubiDao) {
                 dao.insertUserFrequency(entry.copy(count = 0))
             }
         } catch (e: Exception) {
-            // 忽略
+            Log.d(TAG, "resetLearning failed", e)
         }
     }
 }
