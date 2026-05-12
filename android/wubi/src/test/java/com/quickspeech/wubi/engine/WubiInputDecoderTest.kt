@@ -235,4 +235,22 @@ class WubiInputDecoderTest {
     fun inputMode_default_isChinese() {
         assertEquals(InputMode.CHINESE, decoder.inputMode)
     }
+
+    @Test
+    fun processKey_uppercaseC_notTreatedAsBackspace() {
+        // 'C' has code 67 which equals KEYCODE_DEL - should NOT be backspace
+        decoder.processKey('a')
+        decoder.processKey('b')
+        val result = decoder.processKey('C')
+        assertTrue("C should be treated as letter, not backspace", result is InputResult.Composing)
+        assertEquals("abc", (result as InputResult.Composing).code)
+    }
+
+    @Test
+    fun processKey_lowercaseC_appendsToCode() {
+        decoder.processKey('a')
+        val result = decoder.processKey('c')
+        assertTrue(result is InputResult.Composing)
+        assertEquals("ac", (result as InputResult.Composing).code)
+    }
 }
