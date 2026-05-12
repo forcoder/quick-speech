@@ -13,6 +13,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.quickspeech.common.ui.components.SettingsGroup
@@ -23,6 +27,15 @@ import com.quickspeech.common.ui.components.SettingsSwitch
 fun SettingsScreen(
     onNavigateBack: () -> Unit
 ) {
+    // Settings state
+    var wubiEnabled by remember { mutableStateOf(true) }
+    var aiReplyEnabled by remember { mutableStateOf(true) }
+    var ragModeEnabled by remember { mutableStateOf(true) }
+    var aiAgentModeEnabled by remember { mutableStateOf(true) }
+    var hybridModeEnabled by remember { mutableStateOf(true) }
+    var styleLearningEnabled by remember { mutableStateOf(true) }
+    var localLearningEnabled by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -44,42 +57,42 @@ fun SettingsScreen(
             SettingsGroup(title = "输入设置") {
                 SettingsSwitch(
                     title = "五笔输入",
-                    checked = true,
-                    onCheckedChange = {}
+                    checked = wubiEnabled,
+                    onCheckedChange = { wubiEnabled = it }
                 )
                 SettingsSwitch(
                     title = "AI 智能回复",
-                    checked = true,
-                    onCheckedChange = {}
+                    checked = aiReplyEnabled,
+                    onCheckedChange = { aiReplyEnabled = it }
                 )
             }
             SettingsGroup(title = "AI 模式") {
                 SettingsSwitch(
                     title = "知识库模式 (RAG)",
-                    checked = true,
-                    onCheckedChange = {}
+                    checked = ragModeEnabled,
+                    onCheckedChange = { ragModeEnabled = it }
                 )
                 SettingsSwitch(
                     title = "AI 智能体模式",
-                    checked = true,
-                    onCheckedChange = {}
+                    checked = aiAgentModeEnabled,
+                    onCheckedChange = { aiAgentModeEnabled = it }
                 )
                 SettingsSwitch(
                     title = "混合模式",
-                    checked = true,
-                    onCheckedChange = {}
+                    checked = hybridModeEnabled,
+                    onCheckedChange = { hybridModeEnabled = it }
                 )
             }
             SettingsGroup(title = "自进化") {
                 SettingsSwitch(
                     title = "回复风格学习",
-                    checked = true,
-                    onCheckedChange = {}
+                    checked = styleLearningEnabled,
+                    onCheckedChange = { styleLearningEnabled = it }
                 )
                 SettingsSwitch(
                     title = "本地学习模式",
-                    checked = false,
-                    onCheckedChange = {}
+                    checked = localLearningEnabled,
+                    onCheckedChange = { localLearningEnabled = it }
                 )
             }
             SettingsGroup(title = "关于") {

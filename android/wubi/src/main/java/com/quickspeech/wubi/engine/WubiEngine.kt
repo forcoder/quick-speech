@@ -236,6 +236,13 @@ class WubiEngine {
      */
     fun setScheme(scheme: WubiScheme) {
         currentScheme = scheme
+        if (isNativeLoaded) {
+            try {
+                nativeSetScheme(scheme.ordinal)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to set native scheme", e)
+            }
+        }
     }
 
     /**

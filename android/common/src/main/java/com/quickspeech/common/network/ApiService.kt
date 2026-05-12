@@ -11,16 +11,8 @@ import retrofit2.http.POST
 interface ApiService {
 
     @POST("/api/v1/ai/reply")
-    suspend fun generateAiReply(@Body request: AiRequestWrapper): Response<AiReplyResponse>
+    suspend fun generateAiReply(@Body request: AiReplyRequest): Response<AiReplyResponse>
 
     @POST("/api/v1/knowledge/search")
     suspend fun searchKnowledge(@Body request: KnowledgeSearchRequest): Response<KnowledgeSearchResponse>
 }
-
-data class AiRequestWrapper(
-    val context: String,
-    val appType: String,
-    val mode: String,
-    val knowledgeBaseIds: List<String>? = null,
-    val agentId: String? = null
-)

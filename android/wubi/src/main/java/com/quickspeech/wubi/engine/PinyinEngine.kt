@@ -60,11 +60,7 @@ class PinyinEngine {
         )
     }
 
-    private val pinyinDict: Map<String, List<String>>
-
-    init {
-        pinyinDict = buildPinyinDict()
-    }
+    private val pinyinDict: Map<String, List<String>> by lazy { buildPinyinDict() }
 
     /**
      * 搜索拼音候选词

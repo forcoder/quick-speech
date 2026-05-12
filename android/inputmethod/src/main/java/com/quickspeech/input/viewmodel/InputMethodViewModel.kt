@@ -54,7 +54,7 @@ class InputMethodViewModel(
     val uiState: StateFlow<InputMethodUiState> = _uiState
 
     init {
-        Log.e("QuickSpeech", "InputMethodViewModel created")
+        Log.d("QuickSpeech", "InputMethodViewModel created")
         viewModelScope.launch {
             try { wubiInputEngine.refreshUserData() } catch (e: Throwable) { Log.e("QuickSpeech", "refresh failed", e) }
         }
@@ -66,29 +66,29 @@ class InputMethodViewModel(
         viewModelScope.launch {
             wubiInputEngine.composingCode.collectLatest { code ->
                 _uiState.value = _uiState.value.copy(inputCode = code)
-                if (code.isNotEmpty()) checkUserRules(code) else clearUserRuleMatches()
+                if (code.isNotEmpty()) {
+                    // Launch user rule check as a sibling coroutine, not nested inside collectLatest
+                    val exact = userRuleEngine.matchRule(code)
+                    if (exact != null) {
+                        _uiState.value = _uiState.value.copy(
+                            userRuleMatch = UserRuleMatch(exact.id, exact.shortcut, exact.expansion, exact.category, exact.description),
+                            userRulePrefixMatches = emptyList()
+                        )
+                        return@collectLatest
+                    }
+                    _uiState.value = _uiState.value.copy(
+                        userRuleMatch = null,
+                        userRulePrefixMatches = userRuleEngine.matchRulesPrefix(code)
+                    )
+                } else {
+                    clearUserRuleMatches()
+                }
             }
         }
         viewModelScope.launch {
             wubiInputEngine.associatedWords.collectLatest { words ->
                 _uiState.value = _uiState.value.copy(associatedWords = words.map { it.word })
             }
-        }
-    }
-
-    private fun checkUserRules(input: String) {
-        viewModelScope.launch {
-            try {
-                val exact = userRuleEngine.matchRule(input)
-                if (exact != null) {
-                    _uiState.value = _uiState.value.copy(
-                        userRuleMatch = UserRuleMatch(exact.id, exact.shortcut, exact.expansion, exact.category, exact.description),
-                        userRulePrefixMatches = emptyList()
-                    )
-                    return@launch
-                }
-                _uiState.value = _uiState.value.copy(userRuleMatch = null, userRulePrefixMatches = userRuleEngine.matchRulesPrefix(input))
-            } catch (e: Throwable) { Log.e("QuickSpeech", "checkUserRules error", e) }
         }
     }
 
@@ -147,10 +147,8 @@ class InputMethodViewModel(
 
     private fun handleEngineResult(result: EngineResult) {
         when (result) {
-            is EngineResult.Composing -> _uiState.value = _uiState.value.copy(
-                inputCode = result.code,
-                candidates = result.candidates.map { it.entry.word }
-            )
+            // Composing candidates are already handled by the candidates collector
+            is EngineResult.Composing -> { /* candidates collected from engine flow */ }
             is EngineResult.TextSelected -> _uiState.value = _uiState.value.copy(
                 inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
                 userRuleMatch = null, userRulePrefixMatches = emptyList()

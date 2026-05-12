@@ -88,8 +88,15 @@ class UserRuleManager(
      * 删除规则
      */
     suspend fun deleteRule(ruleId: Long): Boolean = withContext(Dispatchers.IO) {
-        ruleDao.deleteRuleById(ruleId)
-        true
+        try {
+            // Verify the rule exists before deleting
+            val existing = ruleDao.getRuleById(ruleId)
+            if (existing == null) return@withContext false
+            ruleDao.deleteRuleById(ruleId)
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     /**

@@ -39,7 +39,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
     private lateinit var apiService: com.quickspeech.common.network.ApiService
     private lateinit var userRuleEngine: UserRuleEngine
     private lateinit var userRuleManager: UserRuleManager
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var scope: CoroutineScope? = null
 
     private var isEnglishMode = false
     private var isSymbolMode = false
@@ -56,25 +56,29 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.e(TAG, "onCreate entered")
+        Log.d(TAG, "onCreate entered")
         try {
             val entryPoint = EntryPoints.get(applicationContext, ImeEntryPoint::class.java)
             aiRepository = entryPoint.aiReplyRepository()
             apiService = entryPoint.apiService()
             val wubiInputEngine = entryPoint.wubiInputEngine()
             userRuleEngine = entryPoint.userRuleEngine()
-            Log.e(TAG, "WubiInputEngine + UserRuleEngine obtained from DI")
+            Log.d(TAG, "WubiInputEngine + UserRuleEngine obtained from DI")
             viewModel = InputMethodViewModel(wubiInputEngine, userRuleEngine)
             userRuleManager = UserRuleManager(applicationContext, entryPoint.userRuleDao(), userRuleEngine)
-            Log.e(TAG, "ViewModel + UserRuleManager created")
+            Log.d(TAG, "ViewModel + UserRuleManager created")
         } catch (e: Throwable) {
-            Log.e(TAG, "Error in onCreate", e)
+            Log.d(TAG, "Fatal error in onCreate - IME may not function", e)
+            throw e
         }
-        Log.e(TAG, "onCreate finished")
+        Log.d(TAG, "onCreate finished")
     }
 
     override fun onCreateInputView(): View {
-        Log.e(TAG, "onCreateInputView")
+        // Create a fresh scope for each input view session to avoid leaks
+        scope?.cancel()
+        scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        Log.d(TAG, "onCreateInputView")
         val view = LayoutInflater.from(this).inflate(R.layout.input_method_view, null)
 
         // ===== Letter keys =====
@@ -88,7 +92,8 @@ class QuickSpeechInputMethodService : InputMethodService() {
         )
         for (keyId in letterKeyIds) {
             view.findViewById<TextView>(keyId)?.setOnClickListener { v ->
-                val key = (v as TextView).text.toString()
+                // Use tag to get the single-letter key, avoiding radical text in toString()
+                val key = v.tag?.toString() ?: (v as TextView).text.toString().takeLast(1)
                 handleLetterKey(key)
             }
         }
@@ -151,6 +156,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
             val aiPanel = view.findViewById<LinearLayout>(R.id.ai_panel)
             if (isAiPanelVisible) {
                 aiPanel?.visibility = View.VISIBLE
+                aiPanel?.clearAnimation()
                 // Slide-down animation
                 val slideDown = android.view.animation.TranslateAnimation(
                     0f, 0f,
@@ -161,6 +167,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                 aiPanel?.startAnimation(slideDown)
                 triggerAiSuggestions()
             } else {
+                aiPanel?.clearAnimation()
                 // Slide-up animation
                 val slideUp = android.view.animation.TranslateAnimation(
                     0f, 0f,
@@ -234,7 +241,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                     startActivity(intent)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Voice input error", e)
+                Log.d(TAG, "Voice input error", e)
                 Toast.makeText(this, "Voice input unavailable: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
@@ -381,7 +388,9 @@ class QuickSpeechInputMethodService : InputMethodService() {
         )
         for ((keyId, radical) in radicalMap) {
             view.findViewById<TextView>(keyId)?.apply {
-                val letter = text.toString()
+                val letter = text.toString().takeLast(1)
+                // Store the single-letter key as tag for reliable click handling
+                tag = letter
                 val spannable = android.text.SpannableString("$radical\n$letter")
                 spannable.setSpan(
                     android.text.style.ForegroundColorSpan(0xFF999999.toInt()),
@@ -780,7 +789,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
         if (!::aiRepository.isInitialized) return
         if (currentInputText.isBlank()) return
         val appCategory = detectAppCategory()
-        scope.launch {
+        scope?.launch {
             try {
                 val result = aiRepository.fetchRepliesWithFallback(
                     inputContext = currentInputText,
@@ -794,7 +803,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                         runOnUiThread { updateAiRepliesView() }
                     }
                     is AiReplyResult.Error -> {
-                        Log.e(TAG, "AI error: ${result.message}")
+                        Log.d(TAG, "AI error: ${result.message}")
                         // Try local-only fallback when network fails
                         val localResult = aiRepository.generateLocalRepliesOnly(
                             inputContext = currentInputText,
@@ -809,7 +818,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                     is AiReplyResult.Loading -> {}
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "AI suggestion error", e)
+                Log.d(TAG, "AI suggestion error", e)
             }
         }
     }
@@ -869,7 +878,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                 container.addView(tv)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error updating AI view", e)
+            Log.d(TAG, "Error updating AI view", e)
         }
     }
 
@@ -901,7 +910,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
     // ===== Rule management hint =====
     private fun showRuleManagementHint() {
-        scope.launch {
+        scope?.launch {
             try {
                 val ruleCount = userRuleEngine.getRuleCount()
                 val message = if (ruleCount == 0) {
@@ -917,7 +926,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                     Toast.makeText(this@QuickSpeechInputMethodService, message, Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error showing rule hint", e)
+                Log.d(TAG, "Error showing rule hint", e)
             }
         }
     }
@@ -934,7 +943,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
             Toast.makeText(this, "Please enter content before searching knowledge base", Toast.LENGTH_SHORT).show()
             return
         }
-        scope.launch {
+        scope?.launch {
             try {
                 val request = com.quickspeech.common.network.model.KnowledgeSearchRequest(query = query, limit = 5)
                 val response = apiService.searchKnowledge(request)
@@ -968,7 +977,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Knowledge search error", e)
+                Log.d(TAG, "Knowledge search error", e)
                 runOnUiThread {
                     Toast.makeText(this@QuickSpeechInputMethodService, "Search error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -978,7 +987,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
 
     override fun onStartInputView(info: android.view.inputmethod.EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
-        Log.e(TAG, "onStartInputView restarting=$restarting")
+        Log.d(TAG, "onStartInputView restarting=$restarting")
         try {
             @Suppress("DEPRECATION")
             window?.window?.setLayout(
@@ -986,7 +995,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                 android.view.ViewGroup.LayoutParams.WRAP_CONTENT
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Error setting window layout", e)
+            Log.d(TAG, "Error setting window layout", e)
         }
     }
 
@@ -996,9 +1005,9 @@ class QuickSpeechInputMethodService : InputMethodService() {
     }
 
     override fun onDestroy() {
-        // Clear pending AI replies and cancel scope BEFORE calling super
         pendingReplies = emptyList()
-        scope.cancel()
+        scope?.cancel()
+        scope = null
         Log.d(TAG, "onDestroy - cleaned up resources")
         super.onDestroy()
     }

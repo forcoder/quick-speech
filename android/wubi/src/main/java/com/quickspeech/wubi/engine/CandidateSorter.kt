@@ -28,7 +28,9 @@ class CandidateSorter {
                 val score = calculateScore(entry, userFrequencies, recentWords, inputCode)
                 RankedCandidate(entry, score)
             }
-            .sortedByDescending { it.score }
+            .sortedWith(compareByDescending<RankedCandidate> { it.score }
+                .thenBy { it.entry.word.length }  // Shorter words first as tiebreaker
+                .thenBy { it.entry.word })         // Alphabetical as final tiebreaker
             .mapIndexed { index, ranked -> ranked.copy(rank = index + 1) }
     }
 

@@ -15,12 +15,13 @@ object WubiPrepopulateData {
 
     fun generateSingleCharEntries(): List<WubiWordEntry> {
         val entries = mutableListOf<WubiWordEntry>()
-        // 按使用频率分档：最高频 5000，最低频 500
-        var freq = 5000
+        // 按使用频率分档：最高频 15000，最低频 1000
+        // 与词组频率范围重叠，让常用字可以排在常用词组前面
+        var freq = 15000
         val totalChars = CHAR_CODE_MAP.size
-        val freqStep = 4500 / totalChars  // 线性递减
+        val freqStep = 14000 / totalChars  // 线性递减
         CHAR_CODE_MAP.forEach { (char, code) ->
-            entries.add(WubiWordEntry(code = code, word = char, frequency = freq.coerceAtLeast(500), type = 0))
+            entries.add(WubiWordEntry(code = code, word = char, frequency = freq.coerceAtLeast(1000), type = 0))
             freq -= freqStep
         }
         return entries
@@ -28,11 +29,15 @@ object WubiPrepopulateData {
 
     fun generatePhraseEntries(): List<WubiWordEntry> {
         val entries = mutableListOf<WubiWordEntry>()
-        var freq = 10000
+        // 词组频率 5000-100，与单字频率范围重叠
+        // 这样常用词组排在前面，但极常用单字也能排在生僻词组前面
+        var freq = 5000
+        val totalPhrases = PHRASE_CODE_MAP.size
+        val freqStep = 4900 / totalPhrases
         PHRASE_CODE_MAP.forEach { (word, code) ->
             val wordType = when (word.length) { 2 -> 1; 3 -> 2; else -> 3 }
-            entries.add(WubiWordEntry(code = code, word = word, frequency = freq, type = wordType))
-            freq--
+            entries.add(WubiWordEntry(code = code, word = word, frequency = freq.coerceAtLeast(100), type = wordType))
+            freq -= freqStep
         }
         return entries
     }

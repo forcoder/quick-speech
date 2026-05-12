@@ -81,7 +81,7 @@ class AiReplyViewModel @Inject constructor(
                             currentRequestId = result.requestId,
                             isLoading = false,
                             isPanelExpanded = true,
-                            isOfflineMode = result.replies.all { r -> r.source == ReplySource.AI_AGENT }
+                            isOfflineMode = result.replies.isNotEmpty() && result.replies.all { r -> r.source == ReplySource.AI_AGENT }
                         )
                     }
                 }

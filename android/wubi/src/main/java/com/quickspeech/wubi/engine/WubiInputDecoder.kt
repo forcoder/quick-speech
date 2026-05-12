@@ -58,8 +58,8 @@ class WubiInputDecoder {
             }
         }
 
-        // 退格键
-        if (key == '\b' || key.code == 67) { // KEYCODE_DEL
+        // 退格键 ('\b' is the backspace character sent by the IME)
+        if (key == '\b') {
             return if (codeBuffer.isNotEmpty()) {
                 codeBuffer.deleteCharAt(codeBuffer.length - 1)
                 if (codeBuffer.isEmpty()) {

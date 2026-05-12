@@ -72,15 +72,16 @@ class WubiViewModel(
 
     /**
      * 选择候选词（点击）
+     * 通过索引选择对应候选词
      */
     fun onCandidateSelected(index: Int) {
         viewModelScope.launch {
             val currentCandidates = candidates.value
             if (index in currentCandidates.indices) {
-                val word = currentCandidates[index].entry.word
-                val code = currentCandidates[index].entry.code
-                // 模拟选择
-                val result = engine.processKey(' ') // 空格确认
+                // Use number key '1'+index to select the candidate at the given index
+                // WubiInputDecoder maps '1'..'9' to SelectCandidate(0..8)
+                val numKey = ('1' + index)
+                val result = engine.processKey(numKey)
                 when (result) {
                     is com.quickspeech.wubi.engine.EngineResult.TextSelected -> {
                         outputText.value += result.word
@@ -135,14 +136,6 @@ class WubiViewModel(
     }
 
     /**
-     * 重置学习数据
-     */
-    fun resetLearning() {
-        engine.reset()
-        outputText.value = ""
-    }
-
-    /**
      * 清除输出文本
      */
     fun clearOutput() {
@@ -150,7 +143,15 @@ class WubiViewModel(
     }
 
     /**
-     * 删除最后一个字符/词
+     * 重置学习数据并清空输出
+     */
+    fun resetLearning() {
+        engine.reset()
+        outputText.value = ""
+    }
+
+    /**
+     * 删除最后一个字符
      */
     fun deleteLast() {
         val current = outputText.value

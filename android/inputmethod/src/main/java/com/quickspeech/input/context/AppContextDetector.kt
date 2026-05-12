@@ -82,7 +82,19 @@ class AppContextDetector @Inject constructor(
     suspend fun getAppCategory(packageName: String): AppCategory {
         val cached = appCategoryDao.getCategory(packageName)
         if (cached != null) {
-            return AppCategory.valueOf(cached.category)
+            return try {
+                AppCategory.valueOf(cached.category)
+            } catch (e: IllegalArgumentException) {
+                // Cached category name no longer exists in enum, reclassify
+                val category = classifyApp(packageName)
+                appCategoryDao.insertMapping(
+                    AppCategoryMappingEntity(
+                        packageName = packageName,
+                        category = category.name
+                    )
+                )
+                category
+            }
         }
 
         val category = classifyApp(packageName)

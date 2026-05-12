@@ -38,7 +38,9 @@ class WubiInputEngine @Inject constructor(
     private val _associatedWords = MutableStateFlow<List<WubiWordEntry>>(emptyList())
     val associatedWords: StateFlow<List<WubiWordEntry>> = _associatedWords.asStateFlow()
 
+    @Volatile
     private var userFrequencies: Map<String, com.quickspeech.wubi.data.UserFrequencyEntry> = emptyMap()
+    @Volatile
     private var recentWords: Set<String> = emptySet()
 
     init {

@@ -26,7 +26,6 @@ abstract class WubiDatabase : RoomDatabase() {
                 DATABASE_NAME
             )
                 .createFromAsset("database/wubi_dict.db")
-                .fallbackToDestructiveMigration()
                 .build()
         }
     }
