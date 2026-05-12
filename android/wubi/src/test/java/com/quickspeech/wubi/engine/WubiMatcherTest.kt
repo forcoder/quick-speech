@@ -220,4 +220,36 @@ class WubiMatcherTest {
         val result = matcher.adjacentKeyMatch("abcde")
         assertEquals(MatchType.NONE, result.matchType)
     }
+
+    // ===== z-key fallback tests =====
+
+    @Test
+    fun smartMatch_zKeyFuzzyNoMatch_fallsBackToPrefixWithoutZ() = runBlocking {
+        // "az" - fuzzy match for "a_" returns nothing, should fall back to prefix "a"
+        fakeDao.prefixResults["a%"] = listOf(entry("aa", "工", 5000), entry("ab", "人", 4000))
+        val result = matcher.smartMatch("az")
+        assertEquals(MatchType.PREFIX, result.matchType)
+        assertEquals(2, result.candidates.size)
+    }
+
+    @Test
+    fun smartMatch_allZCode_fuzzyNoMatch_returnsNone() = runBlocking {
+        // "zzzz" - all z, after removing z for prefix fallback, empty string -> NONE
+        val result = matcher.smartMatch("zzzz")
+        assertEquals(MatchType.NONE, result.matchType)
+    }
+
+    @Test
+    fun fuzzyMatch_zKeyNoMatch_fallsBackToPrefixWithoutZ() = runBlocking {
+        fakeDao.prefixResults["ab%"] = listOf(entry("abc", "工", 5000))
+        val result = matcher.fuzzyMatch("azb")
+        assertEquals(1, result.size)
+        assertEquals("工", result[0].word)
+    }
+
+    @Test
+    fun fuzzyMatch_allZCode_noFallback_returnsEmpty() = runBlocking {
+        val result = matcher.fuzzyMatch("zzz")
+        assertTrue(result.isEmpty())
+    }
 }

@@ -153,4 +153,30 @@ class CandidateSorterTest {
         val result = sorter.sort(candidates)
         assertEquals("单字", result[0].entry.word)
     }
+
+    @Test
+    fun sort_scoreCalculation_noOverflow() {
+        // Test with high frequency values that could overflow Int when combined with bonuses
+        val candidates = listOf(
+            WubiWordEntry(code = "a", word = "高频字", frequency = Int.MAX_VALUE, type = 0, simpleCode = true)
+        )
+        val userFreqs = mapOf(
+            "高频字" to UserFrequencyEntry(word = "高频字", count = 1000, lastUsed = System.currentTimeMillis())
+        )
+        val recentWords = setOf("高频字")
+        val result = sorter.sort(candidates, userFreqs, recentWords, "a")
+        // Should not overflow - score should be positive (Long arithmetic)
+        assertTrue("Score should be positive (no overflow)", result[0].score > 0)
+    }
+
+    @Test
+    fun sort_score_isLongType() {
+        val candidates = listOf(
+            WubiWordEntry(code = "a", word = "测试", frequency = 1000, type = 0)
+        )
+        val result = sorter.sort(candidates)
+        // Verify score is calculated correctly as Long
+        // 1000 (freq) + 500 (type bonus) = 1500
+        assertEquals(1500L, result[0].score)
+    }
 }
