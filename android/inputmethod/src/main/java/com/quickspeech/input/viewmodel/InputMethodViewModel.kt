@@ -97,7 +97,7 @@ class InputMethodViewModel(
     }
 
     fun onUserRuleSelected(match: UserRuleMatch) {
-        viewModelScope.launch { try { userRuleEngine.recordUsage(match.ruleId) } catch (e: Throwable) {} }
+        viewModelScope.launch { try { userRuleEngine.recordUsage(match.ruleId) } catch (e: Throwable) { Log.d("QuickSpeech", "recordUsage failed", e) } }
         wubiInputEngine.reset()
         _uiState.value = _uiState.value.copy(
             inputCode = "", candidates = emptyList(), associatedWords = emptyList(),
@@ -124,7 +124,7 @@ class InputMethodViewModel(
     }
 
     fun onAssociatedWordSelected(word: String) {
-        viewModelScope.launch { try { wubiInputEngine.selectAssociatedWord(word) } catch (e: Throwable) {} }
+        viewModelScope.launch { try { wubiInputEngine.selectAssociatedWord(word) } catch (e: Throwable) { Log.d("QuickSpeech", "selectAssociatedWord failed", e) } }
     }
 
     fun onAiReplySelected(reply: AiReplyUiItem) { _uiState.value = _uiState.value.copy(aiReplies = emptyList(), isAiPanelVisible = false) }

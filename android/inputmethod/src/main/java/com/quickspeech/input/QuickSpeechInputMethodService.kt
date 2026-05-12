@@ -41,17 +41,17 @@ class QuickSpeechInputMethodService : InputMethodService() {
     private lateinit var userRuleManager: UserRuleManager
     private var scope: CoroutineScope? = null
 
-    private var isEnglishMode = false
-    private var isSymbolMode = false
-    private var isShiftOn = false          // Temporary uppercase (single tap Shift)
-    private var isCapsLock = false         // Caps lock (double tap Shift)
-    private var isAiPanelVisible = false
+    @Volatile private var isEnglishMode = false
+    @Volatile private var isSymbolMode = false
+    @Volatile private var isShiftOn = false          // Temporary uppercase (single tap Shift)
+    @Volatile private var isCapsLock = false         // Caps lock (double tap Shift)
+    @Volatile private var isAiPanelVisible = false
     private var currentAiMode = ReplyMode.HYBRID
     private var currentAiStyle = LocalReplyGenerator.ReplyStyle.CASUAL
     private var currentInputText = ""
     private var inputView: View? = null
-    private var lastShiftTapTime = 0L
-    private var showAssociatedWords = false
+    @Volatile private var lastShiftTapTime = 0L
+    @Volatile private var showAssociatedWords = false
 
 
     override fun onCreate() {

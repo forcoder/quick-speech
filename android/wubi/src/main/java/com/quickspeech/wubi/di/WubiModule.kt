@@ -32,31 +32,37 @@ object WubiHiltModule {
     }
 
     @Provides
+    @Singleton
     fun provideWubiDao(database: WubiDatabase): WubiDao {
         return database.wubiDao()
     }
 
     @Provides
+    @Singleton
     fun provideUserRuleDao(database: WubiDatabase): UserRuleDao {
         return database.userRuleDao()
     }
 
     @Provides
+    @Singleton
     fun provideWubiMatcher(dao: WubiDao): WubiMatcher {
         return WubiMatcher(dao)
     }
 
     @Provides
+    @Singleton
     fun provideAssociativeEngine(dao: WubiDao): AssociativeEngine {
         return AssociativeEngine(dao)
     }
 
     @Provides
+    @Singleton
     fun provideFrequencyLearner(dao: WubiDao): FrequencyLearner {
         return FrequencyLearner(dao)
     }
 
     @Provides
+    @Singleton
     fun provideUserRuleEngine(ruleDao: UserRuleDao): UserRuleEngine {
         return UserRuleEngine(ruleDao)
     }

@@ -4,6 +4,7 @@ import com.quickspeech.input.ai.data.*
 import com.quickspeech.input.ai.engine.LocalReplyGenerator
 import com.quickspeech.input.ai.engine.ReplyContextAnalyzer
 import kotlinx.coroutines.flow.first
+import java.util.Collections
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,15 +22,17 @@ class AiReplyRepository @Inject constructor(
     private val localReplyGenerator: LocalReplyGenerator,
     private val contextAnalyzer: ReplyContextAnalyzer
 ) {
-    // LRU cache for recent replies
-    private val replyCache = object : LinkedHashMap<String, CachedReply>(MAX_CACHE_SIZE, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CachedReply>?): Boolean {
-            return size > MAX_CACHE_SIZE
+    // LRU cache for recent replies (synchronized for thread safety)
+    private val replyCache = Collections.synchronizedMap(
+        object : LinkedHashMap<String, CachedReply>(MAX_CACHE_SIZE, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CachedReply>?): Boolean {
+                return size > MAX_CACHE_SIZE
+            }
         }
-    }
+    )
 
-    // User preference scores for reply ranking
-    private val replyPreferenceScores = mutableMapOf<String, Float>()
+    // User preference scores for reply ranking (synchronized for thread safety)
+    private val replyPreferenceScores = Collections.synchronizedMap(mutableMapOf<String, Float>())
 
     companion object {
         private const val MAX_CACHE_SIZE = 100
