@@ -13,6 +13,7 @@ import kotlinx.coroutines.withContext
 class FrequencyLearner(private val dao: WubiDao) {
 
     /** 上次清理过期数据的时间戳 */
+    @Volatile
     private var lastCleanupTime = 0L
 
     /** 清理间隔：24小时 */

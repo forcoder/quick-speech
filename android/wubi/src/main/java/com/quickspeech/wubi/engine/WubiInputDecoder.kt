@@ -54,6 +54,7 @@ class WubiInputDecoder {
             return if (code.isEmpty()) {
                 InputResult.DirectText(" ")
             } else {
+                codeBuffer.clear()
                 InputResult.Confirmed(code)
             }
         }

@@ -58,7 +58,7 @@ class WubiInputEngineTest {
     @Test
     fun rankedCandidate_canBeCreated() {
         val entry = WubiWordEntry(code = "aa", word = "工", frequency = 5000, type = 0)
-        val ranked = RankedCandidate(entry = entry, score = 100, rank = 1)
+        val ranked = RankedCandidate(entry = entry, score = 100L, rank = 1)
         assertEquals("工", ranked.entry.word)
         assertEquals(100, ranked.score)
         assertEquals(1, ranked.rank)

@@ -49,47 +49,45 @@ class CandidateSorter {
         userFrequencies: Map<String, UserFrequencyEntry>,
         recentWords: Set<String>,
         inputCode: String
-    ): Int {
-        var score = 0
+    ): Long {
+        var score = 0L
 
         // 1. 基础词频分 (0-10000)
-        score += entry.frequency
+        score += entry.frequency.toLong()
 
         // 2. 用户习惯分 (0-5000)
         val userFreq = userFrequencies[entry.word]
         if (userFreq != null) {
-            // 选择次数越多，分数越高
-            score += (userFreq.count * 100).coerceAtMost(5000)
-            // 最近使用的额外加分
+            score += (userFreq.count * 100L).coerceAtMost(5000L)
             val daysSinceUsed = (System.currentTimeMillis() - userFreq.lastUsed) / (1000 * 60 * 60 * 24)
             if (daysSinceUsed < 7) {
-                score += 500 // 一周内使用过
+                score += 500L
             } else if (daysSinceUsed < 30) {
-                score += 200 // 一月内使用过
+                score += 200L
             }
         }
 
         // 3. 最近使用分 (0-3000)
         if (entry.word in recentWords) {
-            score += 3000
+            score += 3000L
         }
 
         // 4. 简码优先分
         if (entry.simpleCode) {
-            score += 2000
+            score += 2000L
         }
 
         // 5. 类型优先分：单字 > 二字词 > 三字词
         score += when (entry.type) {
-            0 -> 500   // 单字
-            1 -> 300   // 二字词
-            2 -> 100   // 三字词
-            else -> 0  // 多字词
+            0 -> 500L
+            1 -> 300L
+            2 -> 100L
+            else -> 0L
         }
 
-        // 6. 编码长度匹配加分：编码完全匹配输入的优先
+        // 6. 编码长度匹配加分
         if (entry.code == inputCode) {
-            score += 1500
+            score += 1500L
         }
 
         return score
@@ -99,6 +97,6 @@ class CandidateSorter {
 /** 带排名的候选词 */
 data class RankedCandidate(
     val entry: WubiWordEntry,
-    val score: Int,
+    val score: Long,
     val rank: Int = 0
 )

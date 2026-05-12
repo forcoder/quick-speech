@@ -5,6 +5,8 @@ import com.quickspeech.wubi.data.WubiWordEntry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,9 +41,12 @@ class WubiInputEngine @Inject constructor(
     val associatedWords: StateFlow<List<WubiWordEntry>> = _associatedWords.asStateFlow()
 
     @Volatile
-    private var userFrequencies: Map<String, com.quickspeech.wubi.data.UserFrequencyEntry> = emptyMap()
-    @Volatile
-    private var recentWords: Set<String> = emptySet()
+    private var userData = UserData(emptyMap(), emptySet())
+
+    private data class UserData(
+        val frequencies: Map<String, com.quickspeech.wubi.data.UserFrequencyEntry>,
+        val recentWords: Set<String>
+    )
 
     init {
         // 设置默认86版方案
@@ -50,12 +55,15 @@ class WubiInputEngine @Inject constructor(
     }
 
     suspend fun refreshUserData() {
-        userFrequencies = learner.getUserFrequencies()
-        recentWords = learner.getRecentWords()
+        val freqs = learner.getUserFrequencies()
+        val recent = learner.getRecentWords()
+        userData = UserData(freqs, recent)
     }
 
+    private val decoderMutex = Mutex()
+
     suspend fun processKey(key: Char): EngineResult {
-        val result = decoder.processKey(key)
+        val result = decoderMutex.withLock { decoder.processKey(key) }
 
         return when (result) {
             is InputResult.Composing -> {
@@ -74,7 +82,8 @@ class WubiInputEngine @Inject constructor(
                     return EngineResult.TextSelected(word)
                 }
 
-                val ranked = sorter.sort(matchResult.candidates, userFrequencies, recentWords, result.code)
+                val ud = userData
+                val ranked = sorter.sort(matchResult.candidates, ud.frequencies, ud.recentWords, result.code)
                 _candidates.value = ranked
                 _associatedWords.value = emptyList()
                 EngineResult.Composing(result.code, ranked)

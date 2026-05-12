@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -157,33 +158,36 @@ class QuickSpeechInputMethodService : InputMethodService() {
             if (isAiPanelVisible) {
                 aiPanel?.visibility = View.VISIBLE
                 aiPanel?.clearAnimation()
-                // Slide-down animation
-                val slideDown = android.view.animation.TranslateAnimation(
-                    0f, 0f,
-                    -(aiPanel?.height?.toFloat() ?: 200f), 0f
-                )
-                slideDown.duration = 200
-                slideDown.interpolator = android.view.animation.DecelerateInterpolator()
-                aiPanel?.startAnimation(slideDown)
+                // Ensure layout pass before reading height
+                aiPanel?.post {
+                    val panelHeight = aiPanel?.height?.toFloat() ?: 200f
+                    val slideDown = android.view.animation.TranslateAnimation(
+                        0f, 0f, -panelHeight, 0f
+                    )
+                    slideDown.duration = 200
+                    slideDown.interpolator = android.view.animation.DecelerateInterpolator()
+                    aiPanel?.startAnimation(slideDown)
+                }
                 triggerAiSuggestions()
             } else {
                 aiPanel?.clearAnimation()
-                // Slide-up animation
-                val slideUp = android.view.animation.TranslateAnimation(
-                    0f, 0f,
-                    0f, -(aiPanel?.height?.toFloat() ?: 200f)
-                )
-                slideUp.duration = 150
-                slideUp.interpolator = android.view.animation.AccelerateInterpolator()
-                slideUp.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
-                    override fun onAnimationStart(a: android.view.animation.Animation?) {}
-                    override fun onAnimationRepeat(a: android.view.animation.Animation?) {}
-                    override fun onAnimationEnd(a: android.view.animation.Animation?) {
-                        aiPanel?.visibility = View.GONE
-                        aiPanel?.clearAnimation()
-                    }
-                })
-                aiPanel?.startAnimation(slideUp)
+                aiPanel?.post {
+                    val panelHeight = aiPanel?.height?.toFloat() ?: 200f
+                    val slideUp = android.view.animation.TranslateAnimation(
+                        0f, 0f, 0f, -panelHeight
+                    )
+                    slideUp.duration = 150
+                    slideUp.interpolator = android.view.animation.AccelerateInterpolator()
+                    slideUp.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
+                        override fun onAnimationStart(a: android.view.animation.Animation?) {}
+                        override fun onAnimationRepeat(a: android.view.animation.Animation?) {}
+                        override fun onAnimationEnd(a: android.view.animation.Animation?) {
+                            aiPanel?.visibility = View.GONE
+                            aiPanel?.clearAnimation()
+                        }
+                    })
+                    aiPanel?.startAnimation(slideUp)
+                }
             }
         }
 
@@ -469,7 +473,6 @@ class QuickSpeechInputMethodService : InputMethodService() {
         val ic = currentInputConnection ?: return
         val state = viewModel.uiState.value
         if (!isEnglishMode && !isSymbolMode && state.userRuleMatch != null) {
-            // Priority: user rule match
             val match = state.userRuleMatch
             if (match.expansion.isNotEmpty()) {
                 viewModel.onUserRuleSelected(match)
@@ -477,8 +480,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
                 currentInputText += match.expansion
                 inputView?.let { updateCandidates(it); triggerAiSuggestions() }
             } else {
-                ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
-                ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
+                sendEnterKey()
                 triggerAiSuggestions()
                 currentInputText = ""
             }
@@ -489,8 +491,7 @@ class QuickSpeechInputMethodService : InputMethodService() {
             currentInputText += candidate
             inputView?.let { updateCandidates(it); triggerAiSuggestions() }
         } else {
-            ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
-            ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
+            sendEnterKey()
             triggerAiSuggestions()
             currentInputText = ""
         }
@@ -498,6 +499,30 @@ class QuickSpeechInputMethodService : InputMethodService() {
         if (isShiftOn && !isCapsLock && inputView != null) {
             isShiftOn = false
             updateShiftKeyVisual(inputView!!)
+        }
+    }
+
+    // ===== Send Enter key respecting EditorInfo action =====
+    private fun sendEnterKey() {
+        val editorInfo = currentInputEditorInfo ?: return
+        val actionId = editorInfo.imeOptions and EditorInfo.IME_MASK_ACTION
+        when (actionId) {
+            EditorInfo.IME_ACTION_DONE,
+            EditorInfo.IME_ACTION_GO,
+            EditorInfo.IME_ACTION_SEARCH,
+            EditorInfo.IME_ACTION_SEND -> {
+                currentInputConnection?.performEditorAction(actionId)
+            }
+            EditorInfo.IME_ACTION_NEXT -> {
+                currentInputConnection?.performEditorAction(EditorInfo.IME_ACTION_NEXT)
+            }
+            EditorInfo.IME_ACTION_NONE, EditorInfo.IME_NULL -> {
+                // Default: insert newline
+                currentInputConnection?.commitText("\n", 1)
+            }
+            else -> {
+                currentInputConnection?.commitText("\n", 1)
+            }
         }
     }
 
@@ -1004,10 +1029,32 @@ class QuickSpeechInputMethodService : InputMethodService() {
         return true
     }
 
+    override fun onFinishInput() {
+        super.onFinishInput()
+        // Clear composing state when switching to a different input field
+        viewModel.onInputFinished()
+        currentInputText = ""
+        isAiPanelVisible = false
+        Log.d(TAG, "onFinishInput - cleared composing state")
+    }
+
+    override fun onStartInput(attribute: android.view.inputmethod.EditorInfo?, restarting: Boolean) {
+        super.onStartInput(attribute, restarting)
+        // Reset per-input-session state
+        isEnglishMode = false
+        isSymbolMode = false
+        isShiftOn = false
+        isCapsLock = false
+        currentInputText = ""
+        Log.d(TAG, "onStartInput restarting=$restarting")
+    }
+
     override fun onDestroy() {
         pendingReplies = emptyList()
         scope?.cancel()
         scope = null
+        // Note: ViewModel is created manually, its viewModelScope is tied to the service lifecycle.
+        // The scope will be cleaned up when the IME process terminates.
         Log.d(TAG, "onDestroy - cleaned up resources")
         super.onDestroy()
     }

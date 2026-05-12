@@ -21,7 +21,8 @@ enum class ReplyMode(val displayName: String, val emoji: String) {
 enum class ReplySource(val emoji: String) {
     KNOWLEDGE_BASE("📚"),
     AI_AGENT("🤖"),
-    HYBRID("🔀")
+    HYBRID("🔀"),
+    LOCAL("📱")
 }
 
 /**

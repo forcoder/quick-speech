@@ -38,24 +38,28 @@ fun ReplyCandidateCard(
         ReplySource.KNOWLEDGE_BASE -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
         ReplySource.AI_AGENT -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
         ReplySource.HYBRID -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        ReplySource.LOCAL -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     }
 
     val sourceTagColor = when (reply.source) {
         ReplySource.KNOWLEDGE_BASE -> MaterialTheme.colorScheme.tertiaryContainer
         ReplySource.AI_AGENT -> MaterialTheme.colorScheme.secondaryContainer
         ReplySource.HYBRID -> MaterialTheme.colorScheme.primaryContainer
+        ReplySource.LOCAL -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     val sourceTagTextColor = when (reply.source) {
         ReplySource.KNOWLEDGE_BASE -> MaterialTheme.colorScheme.onTertiaryContainer
         ReplySource.AI_AGENT -> MaterialTheme.colorScheme.onSecondaryContainer
         ReplySource.HYBRID -> MaterialTheme.colorScheme.onPrimaryContainer
+        ReplySource.LOCAL -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     val sourceLabel = when (reply.source) {
         ReplySource.KNOWLEDGE_BASE -> "知识库"
         ReplySource.AI_AGENT -> "AI智能体"
         ReplySource.HYBRID -> "混合"
+        ReplySource.LOCAL -> "本地"
     }
 
     Card(

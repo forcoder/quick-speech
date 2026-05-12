@@ -71,9 +71,14 @@ class WubiMatcher(private val dao: WubiDao) {
             }
         }
 
-        // 3. 降级为前缀匹配
+        // 3. 降级为前缀匹配（去除z字符，因为数据库中不存在含z的编码）
+        val prefixFallback = if (lowerCode.contains('z')) {
+            lowerCode.replace("z", "").ifEmpty { return@withContext emptyList() }
+        } else {
+            lowerCode
+        }
         try {
-            dao.prefixMatch(lowerCode + "%", limit)
+            dao.prefixMatch(prefixFallback + "%", limit)
         } catch (e: Exception) {
             emptyList()
         }
@@ -110,8 +115,14 @@ class WubiMatcher(private val dao: WubiDao) {
             }
         }
 
-        // 第四优先级：前缀匹配
-        val prefixResults = try { dao.prefixMatch(lowerCode + "%", limit) } catch (e: Exception) { emptyList() }
+        // 第四优先级：前缀匹配（去除z字符，因为数据库中不存在含z的编码）
+        val prefixCode = if (lowerCode.contains('z')) {
+            lowerCode.replace("z", "")
+        } else {
+            lowerCode
+        }
+        if (prefixCode.isEmpty()) return@withContext MatchResult(lowerCode, emptyList(), MatchType.NONE)
+        val prefixResults = try { dao.prefixMatch(prefixCode + "%", limit) } catch (e: Exception) { emptyList() }
         if (prefixResults.isNotEmpty()) {
             return@withContext MatchResult(lowerCode, prefixResults, MatchType.PREFIX)
         }

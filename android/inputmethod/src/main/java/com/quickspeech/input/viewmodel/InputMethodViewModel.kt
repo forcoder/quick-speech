@@ -118,7 +118,7 @@ class InputMethodViewModel(
         viewModelScope.launch {
             try {
                 val idx = _uiState.value.candidates.indexOf(candidate)
-                if (idx in 0..8) handleEngineResult(wubiInputEngine.processKey('1' + idx))
+                if (idx in 0..6) handleEngineResult(wubiInputEngine.processKey('1' + idx))
             } catch (e: Throwable) { Log.e("QuickSpeech", "sel error", e) }
         }
     }

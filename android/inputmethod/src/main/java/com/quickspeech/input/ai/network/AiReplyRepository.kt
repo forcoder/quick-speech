@@ -227,8 +227,8 @@ class AiReplyRepository @Inject constructor(
             AiReply(
                 id = "local_${System.currentTimeMillis()}_$index",
                 text = reply.text,
-                source = ReplySource.AI_AGENT, // Local generation is AI-simulated
-                confidence = reply.confidence * 0.8f, // Slightly lower confidence for local
+                source = ReplySource.LOCAL,
+                confidence = reply.confidence * 0.8f,
                 requestId = "local_${System.currentTimeMillis()}"
             )
         }
@@ -283,9 +283,11 @@ class AiReplyRepository @Inject constructor(
      * Record user feedback for reply ranking improvement
      */
     fun recordReplyPreference(replyText: String, isPositive: Boolean) {
-        val currentScore = replyPreferenceScores[replyText] ?: 0.5f
-        val adjustment = if (isPositive) 0.1f else -0.1f
-        replyPreferenceScores[replyText] = (currentScore + adjustment).coerceIn(0f, 1f)
+        synchronized(replyPreferenceScores) {
+            val currentScore = replyPreferenceScores[replyText] ?: 0.5f
+            val adjustment = if (isPositive) 0.1f else -0.1f
+            replyPreferenceScores[replyText] = (currentScore + adjustment).coerceIn(0f, 1f)
+        }
     }
 
     /**
